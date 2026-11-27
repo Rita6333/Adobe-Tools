@@ -7,9 +7,9 @@
 拦截 Adobe 联网和正版校验弹窗的小工具，支持 Windows 和 macOS。
 
 [![Author](https://img.shields.io/badge/author-RITA-059669?style=flat-square&labelColor=111827&logo=github&logoColor=white)](https://github.com/Rita6333/Adobe-Tools)
-[![Release](https://img.shields.io/github/v/release/Rita6333/Adobe-Tools?style=flat-square&labelColor=111827&color=059669)](https://github.com/Rita6333/Adobe-Tools/releases)
-[![Windows](https://img.shields.io/badge/Windows-10%2F11_x64-059669?style=flat-square&labelColor=111827)](#使用方式)
-[![macOS](https://img.shields.io/badge/macOS-11%2B_Universal-059669?style=flat-square&labelColor=111827)](#使用方式)
+[![Release](https://img.shields.io/github/v/release/Rita6333/Adobe-Tools?style=flat-square&labelColor=111827&color=059669&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0yMS40MSAxMS41OGwtOS05QzEyLjA1IDIuMjIgMTEuNTUgMiAxMSAySDRjLTEuMSAwLTIgLjktMiAydjdjMCAuNTUuMjIgMS4wNS41OSAxLjQybDkgOWMuMzYuMzYuODYuNTggMS40MS41OHMxLjA1LS4yMiAxLjQxLS41OWw3LTdjLjM3LS4zNi41OS0uODYuNTktMS40MXMtLjIzLTEuMDYtLjU5LTEuNDJ6TTUuNSA3QzQuNjcgNyA0IDYuMzMgNCA1LjVTNC42NyA0IDUuNSA0IDcgNC42NyA3IDUuNSA2LjMzIDcgNS41IDd6Ii8%2BPC9zdmc%2B)](https://github.com/Rita6333/Adobe-Tools/releases)
+[![Windows](https://img.shields.io/badge/Windows-10%2F11_x64-059669?style=flat-square&labelColor=111827&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0id2hpdGUiPjxwYXRoIGQ9Ik0yIDNoOXY5SDJWM3ptMTEgMGg5djloLTlWM3pNMiAxNGg5djdIMnYtN3ptMTEgMGg5djdoLTl2LTd6Ii8%2BPC9zdmc%2B)](#使用方式)
+[![macOS](https://img.shields.io/badge/macOS-11%2B_Universal-059669?style=flat-square&labelColor=111827&logo=apple&logoColor=white)](#使用方式)
 
 </div>
 
