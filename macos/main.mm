@@ -818,7 +818,7 @@ static void CheckForUpdatesMacAsync(bool silent) {
     if (g_updateBusy.exchange(true)) return;
     UpdateConfig cfg = LoadUpdateConfig();
     MacReleaseInfo emptyRel;
-    PostUpdateStateMac("checking", silent, emptyRel, 0, 0, 0, 0, "正在连接 GitHub Releases 检查更新...", cfg);
+    PostUpdateStateMac("checking", silent, emptyRel, 0, 0, 0, 0, "正在检查更新...", cfg);
 
     NSURL* url = [NSURL URLWithString:[NSString stringWithUTF8String:kDefaultUpdateApiUrl]];
     NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:url
@@ -844,7 +844,7 @@ static void CheckForUpdatesMacAsync(bool silent) {
             if (status == 404) {
                 rel.version = kAppVersion;
                 PostUpdateStateMac("no_release", silent, rel, 0, 0, 0, 0,
-                                   std::string("当前版本 v") + kAppVersion + "（仓库尚未发布正式 Release）", latestCfg);
+                                   std::string("当前版本 v") + kAppVersion, latestCfg);
                 g_updateBusy = false;
                 return;
             }

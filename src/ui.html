@@ -2025,7 +2025,6 @@
         </div>
         <div class="update-head-title">
           <h3 id="updateModalTitle">自动更新</h3>
-          <span>GitHub Releases · Rita6333/Adobe-Tools</span>
         </div>
       </div>
       <button id="btnCloseUpdateModal" class="tb-icon-btn" type="button" title="关闭" onclick="closeUpdateModal()">
@@ -2051,9 +2050,7 @@
         </div>
       </div>
 
-      <div id="updNotesBox" class="update-notes-box">
-        支持通过 GitHub Releases 自动检查新版本，Windows 端支持校验后一键热替换并重启，macOS 端支持自动下载并拉起安装包。
-      </div>
+      <div id="updNotesBox" class="update-notes-box" style="display:none;"></div>
 
       <div id="updProgressBox" class="update-progress-box">
         <div class="update-prog-top">
@@ -2226,7 +2223,7 @@
       checking:         ["正在检查...", ""],
       available:        ["发现新版本", "on"],
       up_to_date:       ["已是最新", "on"],
-      no_release:       ["暂无发布", ""],
+      no_release:       ["已是最新", "on"],
       downloading:      ["下载中", "on"],
       verifying:        ["校验完整性", "on"],
       installing:       ["正在安装", "on"],
@@ -2255,14 +2252,15 @@
     }
 
     const notesBox = document.getElementById("updNotesBox");
-    if (u.notes) {
+    if (u.notes && (state === "available" || state === "downloading" || state === "verifying" || state === "installing" || state === "ready_to_install")) {
+      notesBox.style.display = "block";
       notesBox.innerHTML = renderReleaseNotesHtml(u.notes);
-    } else if (state === "up_to_date") {
-      notesBox.innerHTML = `<span style="color:var(--ink-secondary);">当前安装的 <strong>v${escapeHtml(curV)}</strong> 已是 GitHub Releases 上的最新版本，无需升级。</span>`;
-    } else if (state === "no_release") {
-      notesBox.innerHTML = `<span style="color:var(--ink-secondary);">仓库 <code>Rita6333/Adobe-Tools</code> 尚未发布正式 Release 版本；推送 <code>v*</code> 标签触发 GitHub Actions 后即可自动启用在线更新。</span>`;
     } else if (state === "error") {
-      notesBox.innerHTML = `<span style="color:var(--amber);">${escapeHtml(u.message || "网络请求失败")}</span><div style="margin-top:6px; color:var(--ink-muted);">请确认网络或系统代理可访问 GitHub，或点击左下角「Releases 页面」手动检查。</div>`;
+      notesBox.style.display = "block";
+      notesBox.innerHTML = `<span style="color:var(--amber);">${escapeHtml(u.message || "网络请求失败")}</span>`;
+    } else {
+      notesBox.style.display = "none";
+      notesBox.innerHTML = "";
     }
 
     const progBox = document.getElementById("updProgressBox");

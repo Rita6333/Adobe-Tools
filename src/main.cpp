@@ -2096,7 +2096,7 @@ static bool CheckForUpdatesSync(bool silent, UpdateStateSnapshot& snap, UpdateRe
     if (statusCode == 404) {
         snap.state = "no_release";
         snap.latestVersion = kAppVersion;
-        snap.message = std::string("当前版本 v") + kAppVersion + "（仓库尚未发布正式 Release）";
+        snap.message = std::string("当前版本 v") + kAppVersion;
         return true;
     }
     if (statusCode == 403 || statusCode == 429) {
@@ -2612,7 +2612,7 @@ static void SpawnCheckUpdateAsync(bool silent) {
         checkingSnap.silent = silent;
         checkingSnap.currentVersion = kAppVersion;
         checkingSnap.config = LoadUpdateConfig();
-        checkingSnap.message = "正在连接 GitHub Releases 检查更新...";
+        checkingSnap.message = "正在检查更新...";
         PostUpdateStateToUI(checkingSnap);
 
         UpdateStateSnapshot result;
