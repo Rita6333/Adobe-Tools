@@ -1,0 +1,2791 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adobe Tools</title>
+<style>
+  /* ==========================================================================
+     Adobe NetBlock · Ceramic Light & Obsidian Dark Native Desktop UI
+     Inspired by macOS Sequoia / AdGuard / Cloudflare WARP / Windows 11 Fluent
+     ========================================================================== */
+
+  :root,
+  [data-theme="light"] {
+    --canvas: #f3f4f6;
+    --surface: #ffffff;
+    --surface-subtle: #f8f9fb;
+    --surface-hover: #f1f3f6;
+    --surface-glass: rgba(255, 255, 255, 0.78);
+    --border: rgba(15, 23, 42, 0.08);
+    --border-strong: rgba(15, 23, 42, 0.15);
+    --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.04);
+    --shadow-hero: 0 2px 6px rgba(15, 23, 42, 0.04), 0 14px 36px rgba(15, 23, 42, 0.06);
+    --shadow-pill: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 1px rgba(15, 23, 42, 0.04);
+
+    --ink: #0f172a;
+    --ink-secondary: #475569;
+    --ink-muted: #94a3b8;
+
+    --cta-bg: #111827;
+    --cta-bg-hover: #1f2937;
+    --cta-ink: #ffffff;
+
+    --seg-track: rgba(15, 23, 42, 0.055);
+    --seg-active-bg: #ffffff;
+
+    --emerald: #059669;
+    --emerald-bright: #10b981;
+    --emerald-soft: rgba(16, 185, 129, 0.11);
+    --emerald-ring: rgba(16, 185, 129, 0.24);
+
+    --amber: #d97706;
+    --amber-soft: rgba(245, 158, 11, 0.12);
+
+    --crimson: #dc2626;
+    --crimson-bright: #ef4444;
+    --crimson-soft: rgba(239, 68, 68, 0.11);
+    --crimson-ring: rgba(239, 68, 68, 0.28);
+
+    --slate-soft: rgba(15, 23, 42, 0.06);
+    --switch-off: #cbd5e1;
+
+    --orb-outer: linear-gradient(145deg, #ffffff 0%, #eef1f5 100%);
+    --orb-inner: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+    --orb-shadow: 0 12px 28px rgba(15, 23, 42, 0.10), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    --hero-mesh-idle: radial-gradient(420px circle at 14% 50%, rgba(239, 68, 68, 0.14), transparent 72%);
+    --hero-mesh-on: radial-gradient(420px circle at 14% 50%, rgba(16, 185, 129, 0.15), transparent 72%);
+
+    --font-sans: "Microsoft YaHei UI", "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: "Cascadia Mono", "Consolas", "Microsoft YaHei UI", monospace;
+    color-scheme: light;
+  }
+
+  [data-theme="dark"] {
+    --canvas: #0b0d11;
+    --surface: #13161d;
+    --surface-subtle: #181c25;
+    --surface-hover: #1e232f;
+    --surface-glass: rgba(19, 22, 29, 0.85);
+    --border: rgba(255, 255, 255, 0.075);
+    --border-strong: rgba(255, 255, 255, 0.15);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --shadow-hero: 0 4px 12px rgba(0, 0, 0, 0.4), 0 18px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --shadow-pill: 0 2px 6px rgba(0, 0, 0, 0.35);
+
+    --ink: #f8fafc;
+    --ink-secondary: #94a3b8;
+    --ink-muted: #64748b;
+
+    --cta-bg: #f8fafc;
+    --cta-bg-hover: #ffffff;
+    --cta-ink: #0f172a;
+
+    --seg-track: rgba(255, 255, 255, 0.05);
+    --seg-active-bg: #222735;
+
+    --emerald: #10b981;
+    --emerald-bright: #34d399;
+    --emerald-soft: rgba(16, 185, 129, 0.14);
+    --emerald-ring: rgba(16, 185, 129, 0.32);
+
+    --amber: #f59e0b;
+    --amber-soft: rgba(245, 158, 11, 0.14);
+
+    --crimson: #ef4444;
+    --crimson-bright: #f87171;
+    --crimson-soft: rgba(239, 68, 68, 0.15);
+    --crimson-ring: rgba(239, 68, 68, 0.34);
+
+    --slate-soft: rgba(255, 255, 255, 0.07);
+    --switch-off: #334155;
+
+    --orb-outer: linear-gradient(145deg, #1d222e 0%, #11141b 100%);
+    --orb-inner: linear-gradient(145deg, #212736 0%, #151922 100%);
+    --orb-shadow: 0 14px 32px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+    --hero-mesh-idle: radial-gradient(420px circle at 14% 50%, rgba(239, 68, 68, 0.20), transparent 72%);
+    --hero-mesh-on: radial-gradient(420px circle at 14% 50%, rgba(16, 185, 129, 0.20), transparent 72%);
+
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.28s ease, color 0.28s ease;
+  }
+
+  /* Lightweight, GPU-friendly color crossfade on targeted surfaces only (no box-shadow/clip-path jank) */
+  .window-frame,
+  .brand-mark,
+  .brand-name,
+  .brand-author,
+  .brand-version,
+  .seg-nav,
+  .seg-pill-count,
+  .tb-divider,
+  .hero-title,
+  .hero-desc,
+  .layer-icon-box,
+  .layer-pill,
+  .layer-name,
+  .layer-metric strong,
+  .layer-metric span,
+  .layer-desc,
+  .layer-foot,
+  .panel-card,
+  .panel-toolbar,
+  .search-input-wrap,
+  .domain-chip,
+  .domain-textarea,
+  .drawer-panel,
+  .update-banner,
+  .update-modal,
+  .update-hero,
+  .update-notes-box,
+  .update-pref-row,
+  .footer-pill-sep,
+  .footer-gh-group {
+    transition: background-color 0.28s ease, color 0.28s ease, border-color 0.28s ease;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
+
+  .window-frame {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  /* ==================== 1. FRAMELESS CUSTOM TITLEBAR ==================== */
+  .titlebar {
+    height: 54px;
+    flex: 0 0 54px;
+    padding: 0 14px 0 20px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 30;
+  }
+
+  .titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--cta-bg);
+    color: var(--cta-ink);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  }
+  .brand-mark.protected {
+    background: var(--emerald);
+    color: #ffffff;
+  }
+
+  .brand-name {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  .brand-author {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-muted);
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: var(--slate-soft);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .brand-version {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-secondary);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .brand-version:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
+  }
+  .brand-version.has-update {
+    border-color: var(--emerald-ring);
+    background: var(--emerald-soft);
+    color: var(--emerald);
+  }
+
+  .update-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--emerald-bright);
+    box-shadow: 0 0 6px var(--emerald-bright);
+    display: none;
+    animation: dotBreath 1.8s ease-in-out infinite;
+  }
+  .brand-version.has-update .update-dot {
+    display: inline-block;
+  }
+
+  .tb-update-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--emerald-bright);
+    box-shadow: 0 0 0 2px var(--canvas);
+    display: none;
+    animation: dotBreath 1.8s ease-in-out infinite;
+  }
+  .tb-icon-btn.has-update .tb-update-dot {
+    display: block;
+  }
+  .tb-icon-btn.checking svg {
+    animation: orbSpin 1s linear infinite;
+  }
+
+  /* Center Floating Segmented Nav (macOS / Raycast Style with Sliding Indicator) */
+  .seg-nav {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 11px;
+    background: var(--seg-track);
+    border: 1px solid var(--border);
+  }
+
+  .seg-indicator {
+    position: absolute;
+    top: 3px;
+    left: 0;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--seg-active-bg);
+    box-shadow: var(--shadow-pill);
+    pointer-events: none;
+    z-index: 0;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), width 0.28s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.2s ease;
+    will-change: transform, width;
+  }
+
+  .seg-btn {
+    position: relative;
+    z-index: 1;
+    height: 30px;
+    padding: 0 13px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink-secondary);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.18s ease, transform 0.14s ease;
+  }
+
+  .seg-btn:hover {
+    color: var(--ink);
+  }
+
+  .seg-btn:active {
+    transform: scale(0.96);
+  }
+
+  .seg-btn.active {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .seg-pill-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .seg-btn.active .seg-pill-count {
+    color: var(--ink-secondary);
+  }
+
+  /* Right Titlebar Controls */
+  .titlebar-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .tb-icon-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--ink-secondary);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    position: relative;
+  }
+
+  .tb-icon-btn:hover {
+    background: var(--slate-soft);
+    color: var(--ink);
+  }
+
+  .tb-icon-btn.close:hover {
+    background: var(--crimson);
+    color: #ffffff;
+  }
+
+  .tb-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-strong);
+    margin: 0 3px;
+  }
+
+  /* ==================== 2. MAIN STAGE ==================== */
+  .stage {
+    flex: 1;
+    min-height: 0;
+    padding: 4px 20px 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .view {
+    display: none;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    gap: 14px;
+    animation: viewFade 0.2s ease-out;
+  }
+  .view.active {
+    display: flex;
+  }
+
+  @keyframes viewFade {
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes cardEnter {
+    from { opacity: 0; transform: translateY(12px) scale(0.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes orbPulse {
+    0%   { transform: scale(0.96); opacity: 0.65; }
+    75%  { transform: scale(1.28); opacity: 0; }
+    100% { transform: scale(1.28); opacity: 0; }
+  }
+
+  @keyframes orbFloatBreath {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50%      { transform: translateY(-3px) scale(1.045); }
+  }
+
+  @keyframes orbSheen {
+    0%   { transform: translateX(-140%) rotate(25deg); }
+    45%  { transform: translateX(160%) rotate(25deg); }
+    100% { transform: translateX(160%) rotate(25deg); }
+  }
+
+  @keyframes orbIconWiggle {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25%      { transform: scale(1.06) rotate(-3deg); }
+    75%      { transform: scale(1.06) rotate(3deg); }
+  }
+
+  @keyframes orbSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes orbPop {
+    0%   { transform: scale(0.84); }
+    55%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes dotBreath {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.45; transform: scale(0.85); }
+  }
+
+  @keyframes progressShimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  @keyframes spinOnce {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  @keyframes themePop {
+    0%   { transform: rotate(-160deg) scale(0.5); opacity: 0.25; }
+    65%  { transform: rotate(12deg) scale(1.08); opacity: 1; }
+    100% { transform: rotate(0deg) scale(1); opacity: 1; }
+  }
+
+  @keyframes logSlideIn {
+    from { opacity: 0; transform: translateX(8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .spin-once {
+    animation: spinOnce 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .theme-pop {
+    animation: themePop 0.46s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ==================== HERO PROTECTION STAGE (VIEW 0) ==================== */
+  .hero-card {
+    position: relative;
+    background-color: var(--surface);
+    background-image: var(--hero-mesh-idle);
+    border: 1px solid var(--crimson-ring);
+    border-radius: 20px;
+    box-shadow: var(--shadow-hero);
+    padding: 26px 32px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    overflow: hidden;
+    flex-shrink: 0;
+    animation: cardEnter 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    transition: background-color 0.28s ease, border-color 0.28s ease;
+  }
+
+  .hero-card.protected {
+    background-image: var(--hero-mesh-on);
+    border-color: var(--emerald-ring);
+  }
+
+  /* Tactile Living Shield Orb */
+  .shield-orb-btn {
+    position: relative;
+    width: 114px;
+    height: 114px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background-color: var(--surface-subtle);
+    background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.14) 0%, rgba(0, 0, 0, 0.06) 100%);
+    box-shadow: var(--orb-shadow);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.28s ease, border-color 0.28s ease, transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Dual staggered radar pulse waves */
+  .shield-orb-btn::before,
+  .shield-orb-btn::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid var(--crimson-bright);
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: orbPulse 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  .shield-orb-btn::after {
+    animation-delay: 1.4s;
+  }
+
+  .hero-card.protected .shield-orb-btn::before,
+  .hero-card.protected .shield-orb-btn::after {
+    border-color: var(--emerald-bright);
+  }
+
+  /* Continuous orbiting radar arc + luminous comet dot */
+  .shield-orb-spinner {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2.5px solid transparent;
+    border-top-color: var(--crimson-bright);
+    border-left-color: var(--crimson-ring);
+    opacity: 0.94;
+    pointer-events: none;
+    will-change: transform;
+    animation: orbSpin 3.6s linear infinite;
+    transition: border-color 0.35s ease;
+  }
+
+  .shield-orb-spinner::after {
+    content: "";
+    position: absolute;
+    top: 13px;
+    right: 13px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--crimson-bright);
+    box-shadow: 0 0 10px 1px var(--crimson-bright);
+  }
+
+  .hero-card.protected .shield-orb-spinner {
+    border-top-color: var(--emerald-bright);
+    border-left-color: var(--emerald-ring);
+  }
+
+  .hero-card.protected .shield-orb-spinner::after {
+    background: var(--emerald-bright);
+    box-shadow: 0 0 10px 1px var(--emerald-bright);
+  }
+
+  .hero-card.busy .shield-orb-spinner {
+    animation: orbSpin 0.8s linear infinite;
+  }
+
+  .shield-orb-btn:hover {
+    transform: scale(1.06);
+  }
+  .shield-orb-btn:hover .shield-orb-core svg {
+    animation: orbIconWiggle 0.6s ease-in-out;
+  }
+  .shield-orb-btn:active {
+    transform: scale(0.95);
+  }
+
+  .shield-orb-ring {
+    position: absolute;
+    inset: -7px;
+    border-radius: 50%;
+    border: 1.5px solid var(--crimson-ring);
+    box-shadow: 0 0 26px var(--crimson-soft);
+    pointer-events: none;
+    transition: border-color 0.35s ease, box-shadow 0.35s ease;
+  }
+
+  .hero-card.protected .shield-orb-ring {
+    border-color: var(--emerald-ring);
+    box-shadow: 0 0 26px var(--emerald-soft);
+  }
+
+  .shield-orb-core {
+    position: relative;
+    overflow: hidden;
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #f87171 0%, #ef4444 45%, #dc2626 100%);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.42);
+    will-change: transform;
+    animation: orbFloatBreath 2.8s ease-in-out infinite;
+    transition: background-color 0.3s ease;
+  }
+
+  /* Travelling specular light sheen across the orb */
+  .shield-orb-core::after {
+    content: "";
+    position: absolute;
+    top: -40%;
+    left: 0;
+    width: 48%;
+    height: 180%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.36), transparent);
+    pointer-events: none;
+    will-change: transform;
+    animation: orbSheen 3.8s ease-in-out infinite;
+  }
+
+  .shield-orb-core.pop {
+    animation: orbPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), orbFloatBreath 2.8s ease-in-out 0.45s infinite;
+  }
+
+  .hero-card.protected .shield-orb-core {
+    background: linear-gradient(145deg, #34d399 0%, #10b981 48%, #059669 100%);
+    border-color: rgba(255, 255, 255, 0.32);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.42);
+  }
+
+  .hero-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 11.5px;
+    font-weight: 600;
+    background: var(--crimson-soft);
+    color: var(--crimson);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .status-chip .dot {
+    width: 6.5px;
+    height: 6.5px;
+    border-radius: 50%;
+    background: var(--crimson-bright);
+    box-shadow: 0 0 8px var(--crimson-bright);
+    animation: dotBreath 2.2s ease-in-out infinite;
+  }
+
+  .hero-card.protected .status-chip {
+    background: var(--emerald-soft);
+    color: var(--emerald);
+  }
+
+  .hero-card.protected .status-chip .dot {
+    background: var(--emerald-bright);
+    box-shadow: 0 0 8px var(--emerald-bright);
+  }
+
+  .hero-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .hero-desc {
+    font-size: 13px;
+    color: var(--ink-secondary);
+    line-height: 1.5;
+  }
+
+  .hero-actions {
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.14s ease;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn-hero {
+    background: var(--cta-bg);
+    color: var(--cta-ink);
+    padding: 0 22px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  .btn-hero:hover:not(:disabled) {
+    background: var(--cta-bg-hover);
+    transform: translateY(-1px);
+  }
+
+  .hero-card.protected .btn-hero {
+    background: var(--emerald);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+  }
+
+  .btn-ghost {
+    background: var(--surface-subtle);
+    border-color: var(--border-strong);
+    color: var(--ink);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--surface-hover);
+  }
+
+  .btn-sm {
+    height: 31px;
+    padding: 0 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  /* Slim Progress Strip at Bottom Edge of Hero Card (Only visible when busy) */
+  .hero-progress-wrap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3.5px;
+    background: var(--slate-soft);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .hero-progress-wrap.visible {
+    opacity: 1;
+  }
+  .hero-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--emerald), #34d399, var(--emerald));
+    background-size: 200% 100%;
+    animation: progressShimmer 1.4s linear infinite;
+    transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ==================== 3 TACTILE LAYER CARDS ==================== */
+  .layers-grid {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .layer-card {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    contain: layout style;
+    animation: cardEnter 0.44s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    transition: background-color 0.28s ease, border-color 0.28s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .layer-card:nth-child(1) { animation-delay: 60ms; }
+  .layer-card:nth-child(2) { animation-delay: 120ms; }
+  .layer-card:nth-child(3) { animation-delay: 180ms; }
+
+  .layer-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hero);
+  }
+
+  .layer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .layer-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--slate-soft);
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+  }
+
+  .layer-icon-box.emerald {
+    background: var(--emerald-soft);
+    color: var(--emerald);
+  }
+
+  .layer-icon-box.amber {
+    background: var(--amber-soft);
+    color: var(--amber);
+  }
+
+  .layer-pill {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 99px;
+    background: var(--slate-soft);
+    color: var(--ink-secondary);
+  }
+  .layer-pill.on {
+    background: var(--emerald-soft);
+    color: var(--emerald);
+  }
+  .layer-pill.warn {
+    background: var(--amber-soft);
+    color: var(--amber);
+  }
+
+  .layer-body {
+    margin: 14px 0 12px;
+  }
+
+  .layer-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .layer-metric {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .layer-metric strong {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .layer-metric span {
+    font-size: 12.5px;
+    color: var(--ink-secondary);
+  }
+
+  .layer-desc {
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  .layer-foot {
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--ink-secondary);
+  }
+
+  .layer-link {
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: color 0.28s ease, opacity 0.16s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .layer-link:hover {
+    opacity: 0.78;
+    transform: translateX(3px);
+  }
+
+  /* Apple / macOS Switch */
+  .ios-switch {
+    position: relative;
+    width: 38px;
+    height: 22px;
+    display: inline-block;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .ios-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .ios-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 99px;
+    background: var(--switch-off);
+    transition: background-color 0.2s ease;
+  }
+
+  .ios-slider::before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 3px;
+    top: 3px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .ios-switch input:checked + .ios-slider {
+    background: var(--emerald-bright);
+  }
+
+  .ios-switch input:checked + .ios-slider::before {
+    transform: translateX(16px);
+  }
+
+  .inline-switch-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--ink-secondary);
+  }
+
+  /* ==================== BOTTOM MICRO STATUS STRIP ==================== */
+  .footer-strip {
+    height: 32px;
+    flex: 0 0 32px;
+    padding: 0 4px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+
+  .footer-left {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .footer-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .footer-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+  }
+
+  .footer-dot-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footer-dot-item i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--emerald-bright);
+  }
+  .footer-dot-item i.warn {
+    background: var(--amber);
+  }
+
+  .footer-action-link {
+    border: 0;
+    background: transparent;
+    color: var(--ink-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .footer-action-link:hover {
+    color: var(--ink);
+  }
+
+  .footer-author-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink-secondary);
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: var(--shadow-pill);
+    transition: color 0.28s ease, border-color 0.28s ease, background-color 0.28s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .footer-author-pill:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  .footer-author-pill:active {
+    transform: scale(0.97);
+  }
+
+  .footer-pill-sep {
+    width: 1px;
+    height: 11px;
+    background: var(--border-strong);
+  }
+
+  .footer-gh-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--ink);
+  }
+
+  /* ==================== SUB-VIEWS (PROGRAMS / SERVICES / DOMAINS) ==================== */
+  .panel-card {
+    flex: 1;
+    min-height: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-toolbar {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 300px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 9px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    color: var(--ink-muted);
+  }
+  .search-input-wrap:focus-within {
+    border-color: var(--border-strong);
+    background: var(--surface);
+  }
+  .search-input-wrap input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 12.5px;
+  }
+
+  .table-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  table.clean-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  table.clean-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: 36px;
+    padding: 0 18px;
+    background: var(--surface-subtle);
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-muted);
+    font-size: 11.5px;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  table.clean-table td {
+    height: 44px;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--ink-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  table.clean-table tbody tr:hover td {
+    background: var(--surface-subtle);
+  }
+
+  table.clean-table td.bold-cell {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  table.clean-table td.mono-cell {
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  /* Domains Split */
+  .domains-layout {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 14px;
+  }
+
+  .domain-list-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .domain-group-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .domain-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .domain-chip {
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    color: var(--ink-secondary);
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    user-select: text;
+  }
+
+  .domain-editor-body {
+    flex: 1;
+    min-height: 0;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .domain-textarea {
+    flex: 1;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-subtle);
+    color: var(--ink);
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.55;
+    resize: none;
+    outline: none;
+    user-select: text;
+  }
+  .domain-textarea:focus {
+    border-color: var(--border-strong);
+    background: var(--surface);
+  }
+
+  /* ==================== SLIDE-OVER LOG & DIAGNOSTICS DRAWER ==================== */
+  .drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 50;
+  }
+  .drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .drawer-panel {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    bottom: 12px;
+    width: 440px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    transform: translateX(470px);
+    transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .drawer-panel.open {
+    transform: translateX(0);
+  }
+
+  .drawer-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .drawer-head h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .drawer-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 11.8px;
+    line-height: 1.6;
+    user-select: text;
+  }
+
+  .log-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 4px;
+    border-bottom: 1px solid var(--border);
+    animation: logSlideIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+  .log-row:last-child { border-bottom: 0; }
+  .log-ts { color: var(--ink-muted); font-size: 11px; flex-shrink: 0; }
+  .log-tag { font-weight: 700; font-size: 10.5px; flex-shrink: 0; }
+  .log-tag.PASS, .log-tag.OK, .log-tag.DONE { color: var(--emerald); }
+  .log-tag.WARN, .log-tag.FAIL { color: var(--amber); }
+  .log-tag.STEP, .log-tag.INFO { color: var(--ink-secondary); }
+  .log-txt { color: var(--ink); word-break: break-all; }
+
+  .drawer-foot {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* ==================== FLOATING UPDATE BANNER & MODAL ==================== */
+  .update-banner {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px 9px 14px;
+    border-radius: 13px;
+    background: var(--surface);
+    border: 1px solid var(--emerald-ring);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px) scale(0.97);
+    transition: opacity 0.22s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.28s ease, border-color 0.28s ease;
+  }
+  .update-banner.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+  .update-banner-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--emerald-bright);
+    box-shadow: 0 0 8px var(--emerald-bright);
+    flex-shrink: 0;
+    animation: dotBreath 1.8s ease-in-out infinite;
+  }
+  .update-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-right: 4px;
+  }
+  .update-banner-text strong {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .update-banner-text span {
+    font-size: 11px;
+    color: var(--ink-secondary);
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.42);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+  }
+  .modal-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .update-modal {
+    width: 486px;
+    max-width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.30);
+    overflow: hidden;
+    transform: translateY(10px) scale(0.96);
+    transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.28s ease, border-color 0.28s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-backdrop.open .update-modal {
+    transform: translateY(0) scale(1);
+  }
+
+  .update-modal-head {
+    padding: 15px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .update-head-left {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+  .update-head-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--emerald-soft);
+    color: var(--emerald);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .update-head-title h3 {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .update-head-title span {
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+  }
+
+  .update-modal-body {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .update-hero {
+    padding: 14px 16px;
+    border-radius: 13px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .update-hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .update-ver-flow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .update-ver-tag {
+    padding: 2px 8px;
+    border-radius: 7px;
+    background: var(--slate-soft);
+    color: var(--ink-secondary);
+    font-size: 12px;
+  }
+  .update-ver-tag.new {
+    background: var(--emerald-soft);
+    color: var(--emerald);
+  }
+  .update-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--ink-muted);
+  }
+  .update-meta-badge {
+    padding: 1px 7px;
+    border-radius: 6px;
+    background: var(--slate-soft);
+    color: var(--ink-secondary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .update-meta-badge.verified {
+    background: var(--emerald-soft);
+    color: var(--emerald);
+  }
+
+  .update-notes-box {
+    max-height: 148px;
+    overflow-y: auto;
+    padding: 11px 13px;
+    border-radius: 11px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    font-size: 12.2px;
+    color: var(--ink-secondary);
+    line-height: 1.62;
+    user-select: text;
+  }
+  .update-notes-box .note-h {
+    font-weight: 700;
+    color: var(--ink);
+    margin: 4px 0 2px;
+  }
+  .update-notes-box .note-h:first-child { margin-top: 0; }
+  .update-notes-box .note-li {
+    padding-left: 12px;
+    position: relative;
+  }
+  .update-notes-box .note-li::before {
+    content: "•";
+    position: absolute;
+    left: 2px;
+    color: var(--emerald);
+    font-weight: 700;
+  }
+
+  .update-progress-box {
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    padding: 11px 13px;
+    border-radius: 11px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--emerald-ring);
+  }
+  .update-progress-box.visible {
+    display: flex;
+  }
+  .update-prog-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .update-prog-track {
+    height: 6px;
+    border-radius: 99px;
+    background: var(--slate-soft);
+    overflow: hidden;
+  }
+  .update-prog-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--emerald), #34d399, var(--emerald));
+    background-size: 200% 100%;
+    animation: progressShimmer 1.3s linear infinite;
+    transition: width 0.2s ease;
+  }
+  .update-prog-sub {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--ink-muted);
+  }
+
+  .update-pref-row {
+    padding: 10px 13px;
+    border-radius: 11px;
+    background: var(--surface-subtle);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .update-pref-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .update-pref-info strong {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .update-pref-info span {
+    font-size: 11px;
+    color: var(--ink-muted);
+  }
+
+  .update-modal-foot {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .update-foot-left, .update-foot-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--cta-bg);
+    color: var(--cta-ink);
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-size: 12.5px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+<div class="window-frame">
+
+  <!-- ==================== 1. FRAMELESS CUSTOM TITLEBAR ==================== -->
+  <header class="titlebar" id="titlebarDrag">
+    <div class="titlebar-left">
+      <div id="brandMark" class="brand-mark">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
+        </svg>
+      </div>
+      <span class="brand-name">Adobe Tools</span>
+      <span class="brand-author">by RITA</span>
+      <button id="btnVersionPill" class="brand-version" type="button" title="当前版本 · 点击检查更新" onclick="openUpdateModal()">
+        <span id="txtAppVersion">v2.1.0</span>
+        <span id="dotVersionUpdate" class="update-dot"></span>
+      </button>
+    </div>
+
+    <nav class="seg-nav" id="segNav">
+      <span class="seg-indicator" id="segIndicator"></span>
+      <button id="seg-0" class="seg-btn active" type="button" onclick="switchTab(0)">总览</button>
+      <button id="seg-1" class="seg-btn" type="button" onclick="switchTab(1)">程序 <span id="segCountExes" class="seg-pill-count">0</span></button>
+      <button id="seg-2" class="seg-btn" type="button" onclick="switchTab(2)">服务 <span id="segCountSvcs" class="seg-pill-count">0</span></button>
+      <button id="seg-3" class="seg-btn" type="button" onclick="switchTab(3)">域名 <span id="segCountDoms" class="seg-pill-count">41</span></button>
+    </nav>
+
+    <div class="titlebar-right">
+      <button id="btnUpdateIcon" class="tb-icon-btn" type="button" title="检查自动更新" onclick="openUpdateModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8.5 11.5 12 8 15.5 11.5"/><line x1="12" y1="16" x2="12" y2="8"/></svg>
+        <span id="dotTbUpdate" class="tb-update-dot"></span>
+      </button>
+      <button class="tb-icon-btn" type="button" title="执行日志与自检" onclick="toggleDrawer(true)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      </button>
+      <button id="btnThemeToggle" class="tb-icon-btn" type="button" title="切换浅色 / 深色主题" onclick="toggleTheme(event)">
+        <svg id="iconTheme" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <span class="tb-divider"></span>
+      <button class="tb-icon-btn" type="button" title="最小化" onclick="sendCmd('windowMinimize')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="tb-icon-btn close" type="button" title="关闭" onclick="sendCmd('windowClose')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== 2. MAIN WORKSPACE ==================== -->
+  <main class="stage">
+
+    <!-- ======== TAB 0: OVERVIEW (HERO + 3 LAYER CARDS + FOOTER) ======== -->
+    <section id="view-0" class="view active">
+
+      <div id="heroCard" class="hero-card">
+        <button id="orbBtn" class="shield-orb-btn" type="button" onclick="handleHeroPrimary()" title="点击开启或刷新断网防护">
+          <span class="shield-orb-ring"></span>
+          <span class="shield-orb-spinner"></span>
+          <span id="orbCore" class="shield-orb-core">
+            <svg id="orbIcon" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+          </span>
+        </button>
+
+        <div class="hero-info">
+          <div class="status-chip">
+            <span class="dot"></span>
+            <span id="heroChipText">正在检测系统状态...</span>
+          </div>
+          <h1 id="heroTitle" class="hero-title">Adobe 联网尚未拦截</h1>
+          <p id="heroDesc" class="hero-desc">正在扫描本地 Adobe 安装目录、系统 hosts 及后台正版校验组件...</p>
+
+          <div class="hero-actions">
+            <button id="btnApply" class="btn btn-hero" type="button" onclick="triggerApply()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span id="btnApplyLabel">开启三层断网拦截</span>
+            </button>
+            <button id="btnRevert" class="btn btn-ghost" type="button" onclick="triggerRevert()">
+              还原全部改动
+            </button>
+            <button class="btn btn-ghost" type="button" onclick="sendCmd('pickFolder')" title="添加自定义安装目录">
+              + 自定义目录
+            </button>
+            <button id="btnRefresh" class="tb-icon-btn" type="button" style="border:1px solid var(--border-strong); height:38px; width:38px; border-radius:10px;" onclick="triggerRefresh()" title="重新扫描">
+              <svg id="iconRefresh" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </button>
+            <button id="btnElevate" class="btn btn-hero" type="button" style="display:none; background:var(--amber); color:#fff;" onclick="sendCmd('relaunchAdmin')">
+              提权重启
+            </button>
+          </div>
+        </div>
+
+        <div id="heroProgressWrap" class="hero-progress-wrap">
+          <div id="heroProgressBar" class="hero-progress-bar"></div>
+        </div>
+      </div>
+
+      <!-- 3 Symmetrical Tactile Protection Layer Cards -->
+      <section class="layers-grid">
+        <!-- Layer 1: Firewall -->
+        <article class="layer-card">
+          <div class="layer-head">
+            <div id="iconBoxFw" class="layer-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <span id="pillFw" class="layer-pill">未建立</span>
+          </div>
+          <div class="layer-body">
+            <div class="layer-name">防火墙出站拦截</div>
+            <div class="layer-metric">
+              <strong id="numFw">0</strong>
+              <span id="unitFw">个程序待拦截</span>
+            </div>
+            <p class="layer-desc">逐程序建立 Windows 防火墙出站 Block 规则，自动覆盖注册表与自定义盘符安装路径。</p>
+          </div>
+          <div class="layer-foot">
+            <label class="inline-switch-label">
+              <span class="ios-switch" style="transform:scale(0.84); transform-origin:left center;">
+                <input type="checkbox" id="chkInbound">
+                <span class="ios-slider"></span>
+              </span>
+              <span>含入站规则</span>
+            </label>
+            <button class="layer-link" type="button" onclick="switchTab(1)">查看程序 ›</button>
+          </div>
+        </article>
+
+        <!-- Layer 2: Hosts -->
+        <article class="layer-card">
+          <div class="layer-head">
+            <div id="iconBoxHosts" class="layer-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </div>
+            <label class="ios-switch" title="开启或关闭 Hosts 域名屏蔽层">
+              <input type="checkbox" id="chkHosts" checked>
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+          <div class="layer-body">
+            <div class="layer-name">Hosts 域名屏蔽</div>
+            <div class="layer-metric">
+              <strong id="numHosts">41</strong>
+              <span id="unitHosts">个校验域名</span>
+            </div>
+            <p class="layer-desc">将激活许可、Genuine 正版弹窗源、自动更新与遥测域名双栈指向 0.0.0.0。</p>
+          </div>
+          <div class="layer-foot">
+            <span id="txtHostsState">当前未写入</span>
+            <button class="layer-link" type="button" onclick="switchTab(3)">编辑域名 ›</button>
+          </div>
+        </article>
+
+        <!-- Layer 3: Services & Tasks -->
+        <article class="layer-card">
+          <div class="layer-head">
+            <div id="iconBoxSvc" class="layer-icon-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            </div>
+            <label class="ios-switch" title="开启或关闭后台服务与计划任务拦截层">
+              <input type="checkbox" id="chkServices" checked>
+              <span class="ios-slider"></span>
+            </label>
+          </div>
+          <div class="layer-body">
+            <div class="layer-name">服务与计划任务</div>
+            <div class="layer-metric">
+              <strong id="numSvc">0</strong>
+              <span id="unitSvc">项后台组件</span>
+            </div>
+            <p class="layer-desc">停用 AGS / AGM 本地正版校验服务与定时更新任务，撤销时按记录原样恢复。</p>
+          </div>
+          <div class="layer-foot">
+            <span id="txtSvcState">正在扫描...</span>
+            <button class="layer-link" type="button" onclick="switchTab(2)">查看明细 ›</button>
+          </div>
+        </article>
+      </section>
+
+      <!-- Minimal Micro Footer Strip -->
+      <footer class="footer-strip">
+        <div class="footer-left">
+          <span id="footExtraPaths" style="color:var(--ink-secondary);">拖拽 Adobe 文件夹至此即可附加扫描</span>
+          <button id="btnClearPaths" class="footer-action-link" type="button" style="display:none; text-decoration:underline;" onclick="sendCmd('clearPaths')">清空目录</button>
+        </div>
+        <div class="footer-center">
+          <button class="footer-author-pill" type="button" title="打开 GitHub 仓库：https://github.com/Rita6333/Adobe-Tools" onclick="openExternalUrl('https://github.com/Rita6333/Adobe-Tools')">
+            <span>作者 RITA</span>
+            <span class="footer-pill-sep"></span>
+            <span class="footer-gh-group">
+              <svg width="13.5" height="13.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 0.297C5.37 0.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+              </svg>
+              <span>GitHub</span>
+            </span>
+          </button>
+        </div>
+        <div class="footer-right">
+          <button class="footer-action-link" type="button" onclick="openUpdateModal()">检查更新</button>
+          <button class="footer-action-link" type="button" onclick="triggerSelfTest()">18项自检</button>
+          <button class="footer-action-link" type="button" onclick="sendCmd('openStateDir')">状态目录</button>
+          <button class="footer-action-link" type="button" onclick="toggleDrawer(true)">执行日志</button>
+        </div>
+      </footer>
+    </section>
+
+    <!-- ======== TAB 1: PROGRAMS ======== -->
+    <section id="view-1" class="view">
+      <div class="panel-card">
+        <div class="panel-toolbar">
+          <div class="search-input-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="inputSearchExe" placeholder="搜索 Adobe 可执行文件名或路径..." oninput="renderExeTable()">
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span id="txtExeFilterCount" style="font-size:12px; color:var(--ink-muted);">共 0 个程序</span>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="sendCmd('pickFolder')">+ 添加目录</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="clean-table">
+            <thead>
+              <tr>
+                <th style="width:62px;">序号</th>
+                <th style="width:230px;">可执行文件名</th>
+                <th>安装路径</th>
+                <th style="width:92px; text-align:right;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyExes"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== TAB 2: SERVICES & TASKS ======== -->
+    <section id="view-2" class="view">
+      <div class="panel-card">
+        <div class="panel-toolbar">
+          <span style="font-size:13px; font-weight:600; color:var(--ink);">自动识别的 Adobe 后台服务与计划任务</span>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="sendCmd('refresh')">刷新列表</button>
+        </div>
+        <div class="table-scroll">
+          <table class="clean-table">
+            <thead>
+              <tr>
+                <th style="width:110px;">类型</th>
+                <th style="width:220px;">名称</th>
+                <th>显示名称 / 任务路径</th>
+                <th style="width:115px;">当前状态</th>
+                <th style="width:115px;">启动模式</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyServices"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== TAB 3: DOMAINS ======== -->
+    <section id="view-3" class="view">
+      <div class="domains-layout">
+        <div class="panel-card">
+          <div class="panel-toolbar">
+            <span style="font-size:13px; font-weight:600;">内置屏蔽域名清单 (41 条)</span>
+            <span style="font-size:11.5px; color:var(--emerald); font-weight:600;">0.0.0.0 &amp; ::1</span>
+          </div>
+          <div id="builtinDomainsBox" class="domain-list-scroll"></div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-toolbar">
+            <span style="font-size:13px; font-weight:600;">自定义域名 (adobe-domains.txt)</span>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-ghost btn-sm" type="button" onclick="sendCmd('openHostsDir')">hosts 目录</button>
+              <button class="btn btn-hero btn-sm" type="button" onclick="saveCustomDomains()">保存</button>
+            </div>
+          </div>
+          <div class="domain-editor-body">
+            <textarea id="txtCustomDomains" class="domain-textarea" spellcheck="false" placeholder="# 一行一个域名，# 开头为注释"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ==================== SLIDE-OVER LOG DRAWER ==================== -->
+<div id="drawerBackdrop" class="drawer-backdrop" onclick="toggleDrawer(false)"></div>
+<aside id="drawerPanel" class="drawer-panel">
+  <div class="drawer-head">
+    <h3>执行日志与内置自检</h3>
+    <button class="tb-icon-btn" type="button" onclick="toggleDrawer(false)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div id="logContainer" class="drawer-body"></div>
+  <div class="drawer-foot">
+    <button class="btn btn-ghost btn-sm" type="button" onclick="triggerSelfTest()">运行 18 项自检</button>
+    <div style="display:flex; gap:6px;">
+      <button class="btn btn-ghost btn-sm" type="button" onclick="copyLogs()">复制</button>
+      <button class="btn btn-ghost btn-sm" type="button" onclick="clearLogs()">清空</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ==================== FLOATING NEW VERSION BANNER ==================== -->
+<div id="updateBanner" class="update-banner">
+  <span class="update-banner-dot"></span>
+  <div class="update-banner-text">
+    <strong id="bannerTitle">发现新版本</strong>
+    <span id="bannerSub">点击查看更新说明并一键升级</span>
+  </div>
+  <button class="btn btn-hero btn-sm" type="button" style="height:28px; padding:0 11px; font-size:11.5px;" onclick="openUpdateModal()">立即更新</button>
+  <button class="tb-icon-btn" type="button" style="width:24px; height:24px;" title="稍后提醒" onclick="dismissUpdateBanner()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+</div>
+
+<!-- ==================== AUTO-UPDATE MODAL ==================== -->
+<div id="updateModalBackdrop" class="modal-backdrop" onclick="if(event.target===this) closeUpdateModal()">
+  <div class="update-modal" role="dialog" aria-modal="true" aria-labelledby="updateModalTitle">
+    <div class="update-modal-head">
+      <div class="update-head-left">
+        <div class="update-head-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8.5 11.5 12 8 15.5 11.5"/><line x1="12" y1="16" x2="12" y2="8"/></svg>
+        </div>
+        <div class="update-head-title">
+          <h3 id="updateModalTitle">自动更新</h3>
+          <span>GitHub Releases · Rita6333/Adobe-Tools</span>
+        </div>
+      </div>
+      <button id="btnCloseUpdateModal" class="tb-icon-btn" type="button" title="关闭" onclick="closeUpdateModal()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="update-modal-body">
+      <div class="update-hero">
+        <div class="update-hero-top">
+          <div class="update-ver-flow">
+            <span id="updCurVer" class="update-ver-tag">v2.1.0</span>
+            <span id="updArrow" style="color:var(--ink-muted); display:none;">→</span>
+            <span id="updNewVer" class="update-ver-tag new" style="display:none;">v2.2.0</span>
+          </div>
+          <span id="updStatusPill" class="layer-pill">等待检查</span>
+        </div>
+        <div id="updStatusMsg" style="font-size:12.5px; color:var(--ink-secondary);">点击下方「检查更新」获取最新版本信息。</div>
+        <div id="updMetaRow" class="update-meta-row" style="display:none;">
+          <span id="updAssetBadge" class="update-meta-badge"></span>
+          <span id="updDateBadge" class="update-meta-badge"></span>
+          <span id="updShaBadge" class="update-meta-badge verified" style="display:none;">SHA-256 校验</span>
+        </div>
+      </div>
+
+      <div id="updNotesBox" class="update-notes-box">
+        支持通过 GitHub Releases 自动检查新版本，Windows 端支持校验后一键热替换并重启，macOS 端支持自动下载并拉起安装包。
+      </div>
+
+      <div id="updProgressBox" class="update-progress-box">
+        <div class="update-prog-top">
+          <span id="updProgLabel">正在下载更新...</span>
+          <span id="updProgPct" style="font-family:var(--font-mono); color:var(--emerald);">0%</span>
+        </div>
+        <div class="update-prog-track">
+          <div id="updProgFill" class="update-prog-fill"></div>
+        </div>
+        <div class="update-prog-sub">
+          <span id="updProgBytes">0 KB / 0 KB</span>
+          <span id="updProgSpeed">--</span>
+        </div>
+      </div>
+
+      <div class="update-pref-row">
+        <div class="update-pref-info">
+          <strong>启动时自动检查更新</strong>
+          <span id="updLastChecked">上次检查：尚未检查</span>
+        </div>
+        <label class="ios-switch" title="启动应用时自动静默检查新版本">
+          <input type="checkbox" id="chkAutoUpdate" checked onchange="toggleAutoUpdateCheck()">
+          <span class="ios-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="update-modal-foot">
+      <div class="update-foot-left">
+        <button id="btnOpenReleases" class="footer-action-link" type="button" onclick="openUpdateReleasePage()">Releases 页面 ↗</button>
+        <button id="btnSkipVersion" class="footer-action-link" type="button" style="display:none; color:var(--ink-muted);" onclick="skipCurrentUpdateVersion()">跳过此版本</button>
+      </div>
+      <div class="update-foot-right">
+        <button id="btnCancelDownload" class="btn btn-ghost btn-sm" type="button" style="display:none;" onclick="triggerCancelUpdate()">取消下载</button>
+        <button id="btnRecheckUpdate" class="btn btn-ghost btn-sm" type="button" onclick="triggerCheckUpdate(false)">重新检查</button>
+        <button id="btnInstallUpdate" class="btn btn-hero btn-sm" type="button" style="display:none;" onclick="triggerPrimaryUpdateAction()">立即下载并更新</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast">提示</div>
+
+<script>
+  let allExes = [];
+  let allServices = [];
+  let isProtectedNow = null;
+  let activeTabIndex = 0;
+
+  let appVersion = "2.1.0";
+  let appPlatform = "windows";
+  let updateState = null;
+  let updateConfig = { autoCheck: true, ignoredVersion: "", lastChecked: "" };
+  let autoCheckScheduled = false;
+  let bannerDismissedVersion = "";
+  let justUpdatedShown = false;
+
+  function formatBytes(bytes) {
+    const n = Number(bytes) || 0;
+    if (n <= 0) return "0 B";
+    if (n < 1024) return n + " B";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+    return (n / (1024 * 1024)).toFixed(2) + " MB";
+  }
+
+  function formatSpeed(bps) {
+    const n = Number(bps) || 0;
+    if (n <= 0) return "--";
+    if (n < 1024) return n + " B/s";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB/s";
+    return (n / (1024 * 1024)).toFixed(2) + " MB/s";
+  }
+
+  function renderReleaseNotesHtml(notes) {
+    const raw = String(notes || "").trim();
+    if (!raw) return '<span style="color:var(--ink-muted);">此版本未附带详细更新日志，可点击左下角查看完整 Release 说明。</span>';
+    return raw.split(/\r?\n/).map(line => {
+      const t = line.trim();
+      if (!t) return '<div style="height:6px;"></div>';
+      if (/^#{1,4}\s+/.test(t)) {
+        return `<div class="note-h">${escapeHtml(t.replace(/^#{1,4}\s+/, ""))}</div>`;
+      }
+      if (/^[-*•]\s+/.test(t)) {
+        return `<div class="note-li">${escapeHtml(t.replace(/^[-*•]\s+/, ""))}</div>`;
+      }
+      return `<div>${escapeHtml(t)}</div>`;
+    }).join("");
+  }
+
+  function openUpdateModal() {
+    document.getElementById("updateBanner").classList.remove("show");
+    document.getElementById("updateModalBackdrop").classList.add("open");
+    if (!updateState || updateState.state === "idle") {
+      triggerCheckUpdate(false);
+    } else {
+      renderUpdateModal(updateState);
+    }
+  }
+
+  function closeUpdateModal() {
+    if (updateState && updateState.state === "installing") return;
+    document.getElementById("updateModalBackdrop").classList.remove("open");
+  }
+
+  function dismissUpdateBanner() {
+    if (updateState && updateState.latestVersion) {
+      bannerDismissedVersion = updateState.latestVersion;
+    }
+    document.getElementById("updateBanner").classList.remove("show");
+  }
+
+  function triggerCheckUpdate(silent = false) {
+    sendCmd("checkUpdate", { silent: !!silent });
+  }
+
+  function triggerPrimaryUpdateAction() {
+    if (!updateState) return;
+    if (updateState.hasDirectAsset) {
+      sendCmd("downloadUpdate");
+    } else {
+      openUpdateReleasePage();
+    }
+  }
+
+  function triggerCancelUpdate() {
+    sendCmd("cancelUpdate");
+  }
+
+  function openUpdateReleasePage() {
+    const url = (updateState && updateState.releaseUrl) ? updateState.releaseUrl : "https://github.com/Rita6333/Adobe-Tools/releases";
+    openExternalUrl(url);
+  }
+
+  function toggleAutoUpdateCheck() {
+    const enabled = !!document.getElementById("chkAutoUpdate").checked;
+    updateConfig.autoCheck = enabled;
+    try { localStorage.setItem("anb-auto-update", enabled ? "1" : "0"); } catch {}
+    sendCmd("setUpdateConfig", { autoCheck: enabled });
+    showToast(enabled ? "已开启启动时自动检查更新" : "已关闭启动时自动检查更新");
+  }
+
+  function skipCurrentUpdateVersion() {
+    if (!updateState || !updateState.latestVersion) return;
+    const ver = updateState.latestVersion;
+    updateConfig.ignoredVersion = ver;
+    bannerDismissedVersion = ver;
+    document.getElementById("updateBanner").classList.remove("show");
+    sendCmd("setUpdateConfig", { ignoredVersion: ver });
+    showToast(`已跳过 v${ver} 提醒`);
+    closeUpdateModal();
+  }
+
+  function renderUpdateModal(u) {
+    const curV = u.currentVersion || appVersion;
+    const latestV = u.latestVersion || "";
+    const state = u.state || "idle";
+    const isBusy = state === "checking" || state === "downloading" || state === "verifying" || state === "installing";
+
+    document.getElementById("updCurVer").textContent = "v" + curV;
+    document.getElementById("txtAppVersion").textContent = "v" + curV;
+
+    const showArrow = !!latestV && (state === "available" || state === "downloading" || state === "verifying" || state === "installing" || state === "ready_to_install");
+    document.getElementById("updArrow").style.display = showArrow ? "inline" : "none";
+    document.getElementById("updNewVer").style.display = showArrow ? "inline-block" : "none";
+    if (showArrow) document.getElementById("updNewVer").textContent = "v" + latestV;
+
+    const pill = document.getElementById("updStatusPill");
+    const pillMap = {
+      idle:             ["等待检查", ""],
+      checking:         ["正在检查...", ""],
+      available:        ["发现新版本", "on"],
+      up_to_date:       ["已是最新", "on"],
+      no_release:       ["暂无发布", ""],
+      downloading:      ["下载中", "on"],
+      verifying:        ["校验完整性", "on"],
+      installing:       ["正在安装", "on"],
+      ready_to_install: ["安装包已就绪", "on"],
+      error:            ["检查失败", "warn"]
+    };
+    const [pText, pCls] = pillMap[state] || ["等待检查", ""];
+    pill.textContent = pText;
+    pill.className = "layer-pill" + (pCls ? " " + pCls : "");
+
+    document.getElementById("updStatusMsg").textContent = u.message || "点击重新检查获取最新版本。";
+
+    const metaRow = document.getElementById("updMetaRow");
+    const assetBadge = document.getElementById("updAssetBadge");
+    const dateBadge = document.getElementById("updDateBadge");
+    const shaBadge = document.getElementById("updShaBadge");
+    if (u.assetName || u.publishedAt) {
+      metaRow.style.display = "flex";
+      assetBadge.style.display = u.assetName ? "inline-block" : "none";
+      assetBadge.textContent = u.assetName ? `${u.assetName}${u.assetSize > 0 ? " · " + formatBytes(u.assetSize) : ""}` : "";
+      dateBadge.style.display = u.publishedAt ? "inline-block" : "none";
+      dateBadge.textContent = u.publishedAt ? `发布于 ${u.publishedAt}` : "";
+      shaBadge.style.display = u.hasChecksum ? "inline-block" : "none";
+    } else {
+      metaRow.style.display = "none";
+    }
+
+    const notesBox = document.getElementById("updNotesBox");
+    if (u.notes) {
+      notesBox.innerHTML = renderReleaseNotesHtml(u.notes);
+    } else if (state === "up_to_date") {
+      notesBox.innerHTML = `<span style="color:var(--ink-secondary);">当前安装的 <strong>v${escapeHtml(curV)}</strong> 已是 GitHub Releases 上的最新版本，无需升级。</span>`;
+    } else if (state === "no_release") {
+      notesBox.innerHTML = `<span style="color:var(--ink-secondary);">仓库 <code>Rita6333/Adobe-Tools</code> 尚未发布正式 Release 版本；推送 <code>v*</code> 标签触发 GitHub Actions 后即可自动启用在线更新。</span>`;
+    } else if (state === "error") {
+      notesBox.innerHTML = `<span style="color:var(--amber);">${escapeHtml(u.message || "网络请求失败")}</span><div style="margin-top:6px; color:var(--ink-muted);">请确认网络或系统代理可访问 GitHub，或点击左下角「Releases 页面」手动检查。</div>`;
+    }
+
+    const progBox = document.getElementById("updProgressBox");
+    const showProg = state === "downloading" || state === "verifying" || state === "installing";
+    progBox.classList.toggle("visible", showProg);
+    if (showProg) {
+      const pct = Math.max(0, Math.min(100, Number(u.progress) || 0));
+      document.getElementById("updProgLabel").textContent = u.message || "正在处理...";
+      document.getElementById("updProgPct").textContent = pct + "%";
+      document.getElementById("updProgFill").style.width = pct + "%";
+      if (state === "downloading") {
+        const dlTxt = u.totalBytes > 0 ? `${formatBytes(u.downloadedBytes)} / ${formatBytes(u.totalBytes)}` : formatBytes(u.downloadedBytes);
+        document.getElementById("updProgBytes").textContent = dlTxt;
+        document.getElementById("updProgSpeed").textContent = formatSpeed(u.speedBps);
+      } else {
+        document.getElementById("updProgBytes").textContent = state === "verifying" ? "正在核验 PE 结构与 SHA-256 哈希" : "即将重启至新版本";
+        document.getElementById("updProgSpeed").textContent = "请稍候";
+      }
+    }
+
+    document.getElementById("chkAutoUpdate").checked = u.autoCheck !== undefined ? !!u.autoCheck : !!updateConfig.autoCheck;
+    const lc = u.lastChecked || updateConfig.lastChecked;
+    document.getElementById("updLastChecked").textContent = lc ? `上次检查：${lc}` : "上次检查：尚未检查";
+
+    const btnRecheck = document.getElementById("btnRecheckUpdate");
+    const btnCancel = document.getElementById("btnCancelDownload");
+    const btnInstall = document.getElementById("btnInstallUpdate");
+    const btnSkip = document.getElementById("btnSkipVersion");
+    const btnClose = document.getElementById("btnCloseUpdateModal");
+
+    btnClose.disabled = state === "installing";
+    btnCancel.style.display = state === "downloading" ? "inline-flex" : "none";
+    btnRecheck.style.display = state === "downloading" || state === "verifying" || state === "installing" ? "none" : "inline-flex";
+    btnRecheck.disabled = isBusy;
+    btnSkip.style.display = state === "available" ? "inline" : "none";
+
+    if (state === "available") {
+      btnInstall.style.display = "inline-flex";
+      btnInstall.disabled = false;
+      if (u.hasDirectAsset) {
+        btnInstall.textContent = appPlatform === "macos" ? "下载并打开安装包" : "立即下载并更新";
+      } else {
+        btnInstall.textContent = "前往 GitHub 下载";
+      }
+    } else {
+      btnInstall.style.display = "none";
+    }
+  }
+
+  function updateUpdateUI(u) {
+    if (!u) return;
+    updateState = u;
+    if (typeof u.autoCheck === "boolean") updateConfig.autoCheck = u.autoCheck;
+    if (typeof u.ignoredVersion === "string") updateConfig.ignoredVersion = u.ignoredVersion;
+    if (typeof u.lastChecked === "string" && u.lastChecked) updateConfig.lastChecked = u.lastChecked;
+
+    const hasUpdate = u.state === "available" || u.state === "downloading" || u.state === "verifying" || u.state === "installing";
+    document.getElementById("btnVersionPill").classList.toggle("has-update", hasUpdate);
+    document.getElementById("btnUpdateIcon").classList.toggle("has-update", hasUpdate);
+    document.getElementById("btnUpdateIcon").classList.toggle("checking", u.state === "checking");
+
+    const modalOpen = document.getElementById("updateModalBackdrop").classList.contains("open");
+    renderUpdateModal(u);
+
+    const banner = document.getElementById("updateBanner");
+    const ignored = u.ignoredVersion && u.latestVersion && u.ignoredVersion === u.latestVersion;
+    const dismissed = bannerDismissedVersion && u.latestVersion && bannerDismissedVersion === u.latestVersion;
+    if (u.state === "available" && !modalOpen && !dismissed && (!u.silent || !ignored)) {
+      document.getElementById("bannerTitle").textContent = `发现新版本 v${u.latestVersion}`;
+      document.getElementById("bannerSub").textContent = u.hasDirectAsset
+        ? `当前 v${u.currentVersion || appVersion} · 支持一键校验更新`
+        : `当前 v${u.currentVersion || appVersion} · 点击前往查看`;
+      banner.classList.add("show");
+    } else if (u.state !== "available" || modalOpen) {
+      banner.classList.remove("show");
+    }
+
+    if (!u.silent && u.state === "up_to_date" && !modalOpen) {
+      showToast(u.message || "当前已是最新版本");
+    }
+  }
+
+  function moveSegIndicator(idx) {
+    const btn = document.getElementById("seg-" + idx);
+    const ind = document.getElementById("segIndicator");
+    if (!btn || !ind) return;
+    ind.style.width = btn.offsetWidth + "px";
+    ind.style.transform = `translateX(${btn.offsetLeft}px)`;
+  }
+
+  function animateCounter(el, target) {
+    if (!el) return;
+    const end = Number(target) || 0;
+    const start = Number(el.dataset.val ?? el.textContent) || 0;
+    el.dataset.val = String(end);
+    if (start === end) {
+      el.textContent = String(end);
+      return;
+    }
+    const duration = 420;
+    const t0 = performance.now();
+    function tick(now) {
+      const p = Math.min(1, (now - t0) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = String(Math.round(start + (end - start) * eased));
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = String(end);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function triggerRefresh() {
+    const ic = document.getElementById("iconRefresh");
+    if (ic) {
+      ic.classList.remove("spin-once");
+      void ic.offsetWidth;
+      ic.classList.add("spin-once");
+    }
+    sendCmd("refresh");
+  }
+
+  const domainCategories = [
+    {
+      title: "激活与许可证校验 (27)",
+      items: [
+        "activate.adobe.com", "practivate.adobe.com", "activate-sea.adobe.com", "activate-sjc0.adobe.com",
+        "activate.wip3.adobe.com", "activate.wip4.adobe.com", "ereg.adobe.com", "ereg.wip3.adobe.com",
+        "wip3.adobe.com", "wip4.adobe.com", "3dns.adobe.com", "3dns-2.adobe.com", "3dns-3.adobe.com",
+        "3dns-4.adobe.com", "adobe-dns.adobe.com", "adobe-dns-2.adobe.com", "adobe-dns-3.adobe.com",
+        "adobe-dns-4.adobe.com", "wwis-dubc1-vip60.adobe.com", "wwis-dubc1-vip61.adobe.com",
+        "uds.licenses.adobe.com", "lm.licenses.adobe.com", "lmlicenses.wip4.adobe.com",
+        "licenses.adobe.com", "na1r.services.adobe.com", "na1m-pr.licenses.adobe.com", "na2m-pr.licenses.adobe.com"
+      ]
+    },
+    {
+      title: "正版验证弹窗源头 (3)",
+      items: ["genuine.adobe.com", "prod.adobegenuine.com", "adobegenuine.com"]
+    },
+    {
+      title: "更新与组件下载 (6)",
+      items: ["swupmf.adobe.com", "swupdl.adobe.com", "armmf.adobe.com", "armdl.adobe.com", "prod-wd.adobe.com", "cc-cdn.adobe.com"]
+    },
+    {
+      title: "账号登录与云遥测 (5)",
+      items: ["ims-na1.adobelogin.com", "adobelogin.com", "cc-api-data.adobe.io", "ic.adobe.io", "ccd.storage.adobe.io"]
+    }
+  ];
+
+  // Frameless window dragging on titlebar empty space
+  document.getElementById("titlebarDrag").addEventListener("mousedown", e => {
+    if (e.button !== 0) return;
+    if (e.target.closest("button, nav, input, a")) return;
+    sendCmd("windowDrag");
+  });
+  document.getElementById("titlebarDrag").addEventListener("dblclick", e => {
+    if (e.target.closest("button, nav, input, a")) return;
+    sendCmd("windowMaximize");
+  });
+
+  function applyTheme(theme, animateIcon = false) {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem("anb-theme", theme); } catch {}
+    const icon = document.getElementById("iconTheme");
+    if (theme === "dark") {
+      icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    } else {
+      icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+    if (animateIcon && icon) {
+      icon.classList.remove("theme-pop");
+      void icon.offsetWidth;
+      icon.classList.add("theme-pop");
+    }
+  }
+
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute("data-theme") || "light";
+    applyTheme(cur === "light" ? "dark" : "light", true);
+  }
+
+  function toggleDrawer(open) {
+    document.getElementById("drawerBackdrop").classList.toggle("open", open);
+    document.getElementById("drawerPanel").classList.toggle("open", open);
+  }
+
+  function switchTab(idx) {
+    activeTabIndex = idx;
+    for (let i = 0; i < 4; i++) {
+      document.getElementById("seg-" + i).classList.toggle("active", i === idx);
+      document.getElementById("view-" + i).classList.toggle("active", i === idx);
+    }
+    moveSegIndicator(idx);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  function sendCmd(cmd, payload = {}) {
+    const msgStr = JSON.stringify({ cmd, ...payload });
+    if (window.chrome && window.chrome.webview) {
+      window.chrome.webview.postMessage(msgStr);
+    } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.adobeTools) {
+      window.webkit.messageHandlers.adobeTools.postMessage(msgStr);
+    }
+  }
+
+  function openExternalUrl(url) {
+    if ((window.chrome && window.chrome.webview) ||
+        (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.adobeTools)) {
+      sendCmd("openUrl", { url });
+    } else {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  }
+
+  function setBusy(busy, statusText) {
+    ["btnApply", "btnRevert", "orbBtn"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = busy;
+    });
+    document.getElementById("heroCard").classList.toggle("busy", busy);
+    const wrap = document.getElementById("heroProgressWrap");
+    wrap.classList.toggle("visible", busy);
+    if (busy && statusText) {
+      document.getElementById("heroDesc").textContent = statusText;
+    }
+  }
+
+  function handleHeroPrimary() {
+    triggerApply();
+  }
+
+  function triggerApply() {
+    setBusy(true, "正在建立三层断网拦截...");
+    sendCmd("apply", {
+      skipHosts: !document.getElementById("chkHosts").checked,
+      skipServices: !document.getElementById("chkServices").checked,
+      includeInbound: document.getElementById("chkInbound").checked
+    });
+  }
+
+  function triggerRevert() {
+    setBusy(true, "正在还原全部拦截配置...");
+    sendCmd("revert");
+  }
+
+  function triggerSelfTest() {
+    toggleDrawer(true);
+    sendCmd("selftest");
+  }
+
+  function saveCustomDomains() {
+    const content = document.getElementById("txtCustomDomains").value;
+    sendCmd("saveDomains", { content });
+    showToast("自定义域名已保存至 adobe-domains.txt");
+  }
+
+  function locateExe(path) {
+    sendCmd("locateFile", { path });
+  }
+
+  function appendLog(tag, text) {
+    const box = document.getElementById("logContainer");
+    const ts = new Date().toTimeString().slice(0, 8);
+    const row = document.createElement("div");
+    row.className = "log-row";
+    const t = (tag || "INFO").toUpperCase();
+    row.innerHTML = `<span class="log-ts">${ts}</span><span class="log-tag ${t}">${t}</span><span class="log-txt"></span>`;
+    row.querySelector(".log-txt").textContent = text;
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function clearLogs() {
+    document.getElementById("logContainer").innerHTML = "";
+  }
+
+  function copyLogs() {
+    const lines = Array.from(document.querySelectorAll("#logContainer .log-row"))
+      .map(el => el.innerText.replace(/\s+/g, " ").trim())
+      .join("\r\n");
+    navigator.clipboard.writeText(lines).then(() => showToast("日志已复制到剪贴板"));
+  }
+
+  function initBuiltinDomains() {
+    document.getElementById("builtinDomainsBox").innerHTML = domainCategories.map(cat => `
+      <div>
+        <div class="domain-group-title">${cat.title}</div>
+        <div class="domain-chips">${cat.items.map(d => `<span class="domain-chip">${d}</span>`).join("")}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderExeTable() {
+    const q = (document.getElementById("inputSearchExe").value || "").trim().toLowerCase();
+    const list = allExes.filter(x => !q || x.name.toLowerCase().includes(q) || x.path.toLowerCase().includes(q));
+    document.getElementById("txtExeFilterCount").textContent = q ? `匹配 ${list.length} / ${allExes.length} 个程序` : `共 ${allExes.length} 个程序`;
+
+    document.getElementById("tbodyExes").innerHTML = list.map((item, idx) => `
+      <tr>
+        <td class="mono-cell" style="color:var(--ink-muted);">${String(idx + 1).padStart(2, '0')}</td>
+        <td class="bold-cell" title="${escapeAttr(item.name)}">${escapeHtml(item.name)}</td>
+        <td class="mono-cell" title="${escapeAttr(item.path)}">${escapeHtml(item.path)}</td>
+        <td style="text-align:right;">
+          <button class="btn btn-ghost btn-sm" type="button" style="height:26px; padding:0 9px; font-size:11.5px;" onclick="locateExe(${escapeAttr(JSON.stringify(item.path))})">定位</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function renderServicesTable() {
+    const tbody = document.getElementById("tbodyServices");
+    if (allServices.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:34px; color:var(--ink-muted);">当前系统未发现活动的 Adobe 后台服务或计划任务</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = allServices.map(item => {
+      const isOff = item.startMode.toLowerCase() === "disabled" || item.state.toLowerCase() === "disabled";
+      return `
+        <tr>
+          <td><span class="layer-pill">${escapeHtml(item.kind)}</span></td>
+          <td class="bold-cell">${escapeHtml(item.name)}</td>
+          <td class="mono-cell">${escapeHtml(item.display)}</td>
+          <td><span class="layer-pill ${isOff ? 'on' : 'warn'}">${escapeHtml(item.state)}</span></td>
+          <td class="mono-cell">${escapeHtml(item.startMode)}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function updateStatusUI(s) {
+    allExes = s.exes || [];
+    allServices = s.servicesAndTasks || [];
+
+    const fwOn = s.fwRuleCount > 0;
+    const hostsOn = s.hostsEnabled;
+    const totalBg = s.svcTotal + s.taskTotal;
+    const disabledBg = s.svcDisabled + s.taskDisabled;
+    const pendingBg = Math.max(0, totalBg - disabledBg);
+
+    const nextProtected = fwOn || hostsOn;
+    const stateChanged = (isProtectedNow !== null && isProtectedNow !== nextProtected);
+    isProtectedNow = nextProtected;
+
+    // Hero Card
+    const heroCard = document.getElementById("heroCard");
+    const brandMark = document.getElementById("brandMark");
+    heroCard.classList.toggle("protected", isProtectedNow);
+    brandMark.classList.toggle("protected", isProtectedNow);
+
+    if (stateChanged) {
+      const orbCore = document.getElementById("orbCore");
+      if (orbCore) {
+        orbCore.classList.remove("pop");
+        void orbCore.offsetWidth;
+        orbCore.classList.add("pop");
+      }
+    }
+
+    const orbIcon = document.getElementById("orbIcon");
+    if (fwOn && hostsOn) {
+      document.getElementById("heroChipText").textContent = "三层防护运行中";
+      document.getElementById("heroTitle").textContent = "Adobe 全家桶已断网保护";
+      document.getElementById("btnApplyLabel").textContent = "重新应用拦截";
+      orbIcon.innerHTML = '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>';
+    } else if (fwOn || hostsOn) {
+      document.getElementById("heroChipText").textContent = "部分防护已启用";
+      document.getElementById("heroTitle").textContent = "已启用部分断网拦截";
+      document.getElementById("btnApplyLabel").textContent = "补全三层拦截";
+      orbIcon.innerHTML = '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>';
+    } else {
+      document.getElementById("heroChipText").textContent = "防护未开启";
+      document.getElementById("heroTitle").textContent = "Adobe 联网尚未拦截";
+      document.getElementById("btnApplyLabel").textContent = "开启三层断网拦截";
+      orbIcon.innerHTML = '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/>';
+    }
+
+    const lastStr = (s.lastApplied && s.lastApplied !== "尚无记录") ? ` · 上次执行 ${s.lastApplied}` : "";
+    document.getElementById("heroDesc").textContent =
+      `本机扫描到 ${allExes.length} 个 Adobe 程序、${s.domainCount} 个屏蔽域名、${totalBg} 项后台服务与计划任务${lastStr}`;
+
+    // Layer 1: Firewall
+    document.getElementById("iconBoxFw").className = "layer-icon-box " + (fwOn ? "emerald" : "");
+    document.getElementById("pillFw").className = "layer-pill " + (fwOn ? "on" : "");
+    document.getElementById("pillFw").textContent = fwOn ? `${s.fwRuleCount} 条生效` : "未建立";
+    animateCounter(document.getElementById("numFw"), fwOn ? s.fwRuleCount : allExes.length);
+    document.getElementById("unitFw").textContent = fwOn ? "条拦截规则" : "个待拦截程序";
+
+    // Layer 2: Hosts
+    document.getElementById("iconBoxHosts").className = "layer-icon-box " + (hostsOn ? "emerald" : "");
+    animateCounter(document.getElementById("numHosts"), s.domainCount);
+    document.getElementById("txtHostsState").textContent = hostsOn
+      ? (s.hostsBackup ? "已写入 · 原文件已备份" : "已写入 hosts")
+      : "当前未写入";
+
+    // Layer 3: Services & Tasks
+    document.getElementById("iconBoxSvc").className = "layer-icon-box " + (pendingBg === 0 ? "emerald" : "amber");
+    animateCounter(document.getElementById("numSvc"), pendingBg === 0 ? totalBg : pendingBg);
+    document.getElementById("unitSvc").textContent = pendingBg === 0 ? "项已全部停用" : "项活动待禁用";
+    document.getElementById("txtSvcState").textContent = `服务 ${s.svcDisabled}/${s.svcTotal} · 任务 ${s.taskDisabled}/${s.taskTotal}`;
+
+    // Segmented Nav Counts & re-align indicator width after count text updates
+    document.getElementById("segCountExes").textContent = allExes.length;
+    document.getElementById("segCountSvcs").textContent = totalBg;
+    document.getElementById("segCountDoms").textContent = s.domainCount;
+    requestAnimationFrame(() => moveSegIndicator(activeTabIndex));
+
+    // Admin elevate button & extra paths
+    document.getElementById("btnElevate").style.display = s.isAdmin ? "none" : "inline-flex";
+
+    if (s.extraPaths && s.extraPaths.length > 0) {
+      document.getElementById("footExtraPaths").textContent = `自定义目录 (${s.extraPaths.length})：${s.extraPaths.join("; ")}`;
+      document.getElementById("btnClearPaths").style.display = "inline";
+    } else {
+      document.getElementById("footExtraPaths").textContent = "拖拽 Adobe 文件夹至此即可附加扫描";
+      document.getElementById("btnClearPaths").style.display = "none";
+    }
+
+    if (typeof s.customDomainsText === "string") {
+      document.getElementById("txtCustomDomains").value = s.customDomainsText;
+    }
+
+    if (typeof s.appVersion === "string" && s.appVersion) {
+      appVersion = s.appVersion;
+      document.getElementById("txtAppVersion").textContent = "v" + appVersion;
+      document.getElementById("updCurVer").textContent = "v" + appVersion;
+    }
+    if (typeof s.platform === "string" && s.platform) {
+      appPlatform = s.platform;
+    }
+    if (s.updateConfig && typeof s.updateConfig === "object") {
+      updateConfig = { ...updateConfig, ...s.updateConfig };
+      document.getElementById("chkAutoUpdate").checked = !!updateConfig.autoCheck;
+      if (updateConfig.lastChecked) {
+        document.getElementById("updLastChecked").textContent = `上次检查：${updateConfig.lastChecked}`;
+      }
+    }
+    if (s.justUpdatedFrom && !justUpdatedShown) {
+      justUpdatedShown = true;
+      appendLog("DONE", `已成功从 v${s.justUpdatedFrom} 自动更新至 v${appVersion}！`);
+      showToast(`已成功更新至 v${appVersion}`);
+    }
+    if (!autoCheckScheduled) {
+      autoCheckScheduled = true;
+      let shouldAuto = updateConfig.autoCheck !== false;
+      try {
+        const ls = localStorage.getItem("anb-auto-update");
+        if (ls === "0") shouldAuto = false;
+      } catch {}
+      if (shouldAuto) {
+        setTimeout(() => triggerCheckUpdate(true), 1100);
+      }
+    }
+
+    renderExeTable();
+    renderServicesTable();
+    setBusy(false);
+  }
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/'/g, "&#39;");
+  }
+
+  function handleHostMessage(rawData) {
+    const msg = typeof rawData === "string" ? JSON.parse(rawData) : rawData;
+    if (!msg) return;
+    if (msg.type === "status") {
+      updateStatusUI(msg.data);
+    } else if (msg.type === "log") {
+      appendLog(msg.tag, msg.text);
+      if (msg.tag === "DONE") showToast(msg.text.slice(0, 28));
+    } else if (msg.type === "progress") {
+      document.getElementById("heroProgressBar").style.width = `${msg.percent}%`;
+      if (msg.percent > 0 && msg.percent < 100 && msg.text) {
+        document.getElementById("heroDesc").textContent = msg.text;
+      }
+    } else if (msg.type === "tab") {
+      switchTab(msg.index);
+    } else if (msg.type === "theme") {
+      applyTheme(msg.value);
+    } else if (msg.type === "updateState") {
+      updateUpdateUI(msg.data);
+    } else if (msg.type === "openUpdateModal") {
+      openUpdateModal();
+    }
+  }
+
+  window.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+      closeUpdateModal();
+      toggleDrawer(false);
+    }
+  });
+
+  window.__receiveHostMessage = handleHostMessage;
+
+  if (window.chrome && window.chrome.webview) {
+    window.chrome.webview.addEventListener("message", event => handleHostMessage(event.data));
+  }
+
+  window.addEventListener("resize", () => moveSegIndicator(activeTabIndex));
+
+  window.addEventListener("DOMContentLoaded", () => {
+    let savedTheme = "light";
+    try { savedTheme = localStorage.getItem("anb-theme") || "light"; } catch {}
+    applyTheme(savedTheme, false);
+    initBuiltinDomains();
+    requestAnimationFrame(() => moveSegIndicator(0));
+    appendLog("INFO", "Adobe Tools 原生 C++ / WebView2 引擎已就绪");
+    sendCmd("init");
+  });
+</script>
+</body>
+</html>

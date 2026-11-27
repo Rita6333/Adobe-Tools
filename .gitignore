@@ -1,0 +1,14 @@
+# Build artifacts & temporary files
+src/*.obj
+src/*.res
+dist/
+*.old
+*.tmp
+*.log
+
+# OS & editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
