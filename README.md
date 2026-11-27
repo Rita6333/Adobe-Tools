@@ -4,7 +4,7 @@
 
 # Adobe Tools
 
-Windows 与 macOS 平台的 Adobe 全家桶三层断网拦截工具，原生 C++17 与 WebView2 / WKWebView HTML5 桌面端，支持一键自动更新。
+Windows 与 macOS 平台的 Adobe 全家桶三层断网拦截工具桌面端，支持一键自动更新。
 
 [![Author](https://img.shields.io/badge/author-RITA-059669?style=flat-square&labelColor=111827&logo=github&logoColor=white)](https://github.com/Rita6333/Adobe-Tools)
 [![Engine](https://img.shields.io/badge/C%2B%2B-17_Native-059669?style=flat-square&labelColor=111827&logo=cplusplus&logoColor=white)](#从源码构建)
