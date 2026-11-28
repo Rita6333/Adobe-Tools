@@ -59,6 +59,11 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || inputs.tag != ''
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
@@ -71,18 +76,35 @@ jobs:
           name: Adobe-Tools-macOS
           path: release-assets
 
-      - name: Generate SHA256SUMS.txt
-        working-directory: release-assets
+      - name: Generate SHA256SUMS.txt & Release Notes
         run: |
+          cd release-assets
           sha256sum "Adobe Tools.exe" "Adobe-Tools-macOS-Universal.dmg" "Adobe-Tools-macOS-Universal.pkg" > SHA256SUMS.txt
           cat SHA256SUMS.txt
+          cd ..
+          TAG="${{ inputs.tag != '' && inputs.tag || github.ref_name }}"
+          TAG_MSG="$(git for-each-ref --format='%(contents)' "refs/tags/$TAG" | sed '/^$/d')"
+          PREV_TAG="$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)"
+          {
+            if [ -n "$TAG_MSG" ]; then
+              printf '%s\n\n' "$TAG_MSG"
+            fi
+            if [ -n "$PREV_TAG" ]; then
+              echo "### 提交记录"
+              git log --pretty=format:'- %s (%h)' "${PREV_TAG}..${TAG}"
+              echo ""
+              echo ""
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
+            fi
+          } > release-notes.md
+          cat release-notes.md
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
           name: Adobe Tools ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
-          generate_release_notes: true
+          body_path: release-notes.md
           files: |
             release-assets/Adobe Tools.exe
             release-assets/Adobe-Tools-macOS-Universal.dmg
