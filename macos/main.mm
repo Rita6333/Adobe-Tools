@@ -30,7 +30,7 @@
 
 namespace fs = std::filesystem;
 
-static const char* kAppVersion             = "2.1.0";
+static const char* kAppVersion             = "2.2.0";
 static const char* kDefaultUpdateApiUrl    = "https://api.github.com/repos/Rita6333/Adobe-Tools/releases/latest";
 static const char* kDefaultReleasesPageUrl = "https://github.com/Rita6333/Adobe-Tools/releases";
 
