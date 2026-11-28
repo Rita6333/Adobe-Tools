@@ -223,7 +223,7 @@ static bool JsonGetBool(const std::string& json, const std::string& key, bool de
 // Constants & Built-in Domains
 // ============================================================================
 
-static const char* kAppVersion             = "2.2.0";
+static const char* kAppVersion             = "2.2.1";
 static const char* kGitHubRepo             = "Rita6333/Adobe-Tools";
 static const char* kDefaultUpdateApiUrl    = "https://api.github.com/repos/Rita6333/Adobe-Tools/releases/latest";
 static const char* kDefaultReleasesPageUrl = "https://github.com/Rita6333/Adobe-Tools/releases";
@@ -265,20 +265,39 @@ static const std::vector<std::string> kBuiltInDomains = {
     "na1r.services.adobe.com",
     "na1m-pr.licenses.adobe.com",
     "na2m-pr.licenses.adobe.com",
+    "workflow.licenses.adobe.com",
+    "workflow-stage.licenses.adobe.com",
+    "oobe.adobe.com",
+    "ans.oobesaas.adobe.com",
+    "hl2rcv.adobe.com",
     "genuine.adobe.com",
     "prod.adobegenuine.com",
     "adobegenuine.com",
-    "ims-na1.adobelogin.com",
-    "adobelogin.com",
+    "lcs-cops.adobe.io",
+    "lcs-ulecs.adobe.io",
+    "lcs-robs.adobe.io",
+    "gcos.adobe.io",
+    "hbc.adobe.io",
+    "fp.adobestats.io",
+    "crs.cr.adobe.com",
+    "utut-service.adobe.com",
     "swupmf.adobe.com",
     "swupdl.adobe.com",
     "armmf.adobe.com",
     "armdl.adobe.com",
     "prod-wd.adobe.com",
     "cc-cdn.adobe.com",
+    "geo2.adobe.com",
+    "ims-na1.adobelogin.com",
+    "adobelogin.com",
     "cc-api-data.adobe.io",
     "ic.adobe.io",
-    "ccd.storage.adobe.io"
+    "ccd.storage.adobe.io",
+    "adobe.io",
+    "ims-prod06.adobelogin.com",
+    "ims-prod07.adobelogin.com",
+    "p13n.adobe.io",
+    "notify.adobe.io"
 };
 
 // ============================================================================
@@ -2254,14 +2273,19 @@ static void CleanupStaleOldBinary() {
 
 static const std::vector<std::string> kMihomoDomainSuffixes = {
     "adobegenuine.com",
+    "adobestats.io",
+    "adobe.io",
     "adobelogin.com",
     "licenses.adobe.com",
+    "oobesaas.adobe.com",
+    "cr.adobe.com",
     "wip3.adobe.com",
     "wip4.adobe.com"
 };
 
 static const std::vector<std::string> kMihomoDomainKeywords = {
     "adobegenuine",
+    "adobestats",
     "adobe-dns",
     "3dns",
     "lmlicenses"
@@ -2270,11 +2294,20 @@ static const std::vector<std::string> kMihomoDomainKeywords = {
 static const std::vector<std::string> kMihomoExtraDomains = {
     "lcs-cops.adobe.io",
     "lcs-ulecs.adobe.io",
+    "lcs-robs.adobe.io",
+    "gcos.adobe.io",
+    "hbc.adobe.io",
+    "fp.adobestats.io",
+    "crs.cr.adobe.com",
+    "utut-service.adobe.com",
+    "workflow.licenses.adobe.com",
+    "workflow-stage.licenses.adobe.com",
     "p13n.adobe.io",
     "notify.adobe.io",
     "geo2.adobe.com",
     "hl2rcv.adobe.com",
     "oobe.adobe.com",
+    "ans.oobesaas.adobe.com",
     "ims-prod06.adobelogin.com",
     "ims-prod07.adobelogin.com"
 };
@@ -2519,7 +2552,7 @@ static int RunSelfTestEngine(std::function<void(const std::string&, const std::s
 
     std::string applied1 = ApplyHostsToString(orig, kBuiltInDomains);
     check(HostsHasBlock(applied1), "块已写入");
-    check(kBuiltInDomains.size() == 41, "域名条数 = 41");
+    check(kBuiltInDomains.size() == 60, "域名条数 = 60");
 
     bool mod2 = false;
     StripHostsBlock(applied1, &mod2);

@@ -23,7 +23,7 @@
 直接去 [Releases](https://github.com/Rita6333/Adobe-Tools/releases) 下对应系统的安装包就行：
 
 - Windows：`Adobe.Tools.exe`（单文件，不用安装，双击直接用）
-- macOS：`Adobe-Tools-macOS-Universal.dmg` 或 `.pkg`（支持 Apple Silicon 和 Intel）
+- macOS：`Adobe-Tools-macOS-Universal.pkg`（推荐，直接装进「应用程序」）或 `.dmg`（直接双击打开也会自动复制到 `/Applications`，重启不会消失，支持 Apple Silicon 和 Intel）
 
 ## 使用方式
 
@@ -36,15 +36,15 @@
 
 工具只动下面三处，每次修改前都会记录原始状态，还原时不会碰你的其他配置：
 
-1. **防火墙规则**
+1. **防火墙与通配符 DNS 黑洞**
    - Windows：自动扫描常见安装目录以及注册表里的 Adobe 卸载项，给每个 `.exe` 加出站阻止规则，统一归在 `Zaka Adobe Block` 组下（可选勾选同时加「含入站规则」）。
-   - macOS：扫描 `/Applications` 及用户应用目录下的 Adobe `.app`，通过系统 `socketfilterfw` 拦截。
+   - macOS：启用系统应用防火墙拦截扫描到的 Adobe `.app`，并在 `/etc/resolver/` 下写入通配符黑洞配置，直接封堵 Adobe 2025/2026 动态轮换的 `*.adobestats.io`、`*.adobe.io`、`*.adobegenuine.com`、`*.licenses.adobe.com` 等所有子域名。
 2. **hosts 屏蔽**
-   - 在系统 hosts 末尾追加一段带起止标记的区块，把 41 个激活、Genuine 正版校验、更新和遥测域名同时指向 `0.0.0.0` 和 `::1`，并刷新 DNS 缓存。
+   - 在系统 hosts 末尾追加一段带起止标记的区块，屏蔽 60 个核心激活、Genuine 正版校验（含 `lcs-cops.adobe.io` / `lcs-ulecs.adobe.io` / `fp.adobestats.io`）、更新和遥测域名，并刷新 DNS 缓存。
    - 第一次改动前会先备份原始 hosts。想自己补域名的话，在软件里的「域名」页或者直接编辑同目录的 `adobe-domains.txt`（一行一个，`#` 开头算注释），保存后重新应用就行。
-3. **后台校验服务和启动项**
+3. **后台校验服务、正版组件与开机守护**
    - Windows：停止并禁用 `AGSService`、`AGMService`、`AdobeARMservice` 等后台服务，以及名称或路径含 Adobe 的计划任务。原来的启动方式会记在 `state.json` 里，还原时照原样改回去。
-   - macOS：卸载并禁用 `/Library/LaunchAgents`、`/Library/LaunchDaemons` 和 `~/Library/LaunchAgents` 下的 `com.adobe.*.plist`，同时结束后台常驻进程。
+   - macOS：卸载并禁用所有 Adobe LaunchAgents/LaunchDaemons，将 `AdobeGCClient`、`Adobe Desktop Common/AGS` 与缓存正版标记的 `/Users/Shared/AdobeGCData` 备份并加不可变锁（`uchg`），禁用特权修复助手，同时安装开机持久守护 LaunchDaemon，确保重启 Mac 后拦截不会失效；点击「还原全部改动」即可完整解锁并恢复原状。
 
 不想动 hosts 或服务的话，在首页对应卡片右上角把开关关掉即可。
 

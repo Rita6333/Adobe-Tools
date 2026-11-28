@@ -401,6 +401,33 @@
     margin: 0 3px;
   }
 
+  .win-window-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .macos-only {
+    display: none;
+  }
+
+  /* Native macOS window chrome: hide Windows-style titlebar min/close controls & outer border */
+  .platform-macos .window-frame {
+    border: 0;
+  }
+  .platform-macos .titlebar {
+    height: 48px;
+    flex: 0 0 48px;
+    padding: 0 18px;
+  }
+  .platform-macos .win-window-controls,
+  .platform-macos .win-only {
+    display: none !important;
+  }
+  .platform-macos .macos-only {
+    display: inline-flex;
+  }
+
   /* ==================== 2. MAIN STAGE ==================== */
   .stage {
     flex: 1;
@@ -1803,7 +1830,7 @@
       <span class="brand-name">Adobe Tools</span>
       <span class="brand-author">by RITA</span>
       <button id="btnVersionPill" class="brand-version" type="button" title="当前版本 · 点击检查更新" onclick="openUpdateModal()">
-        <span id="txtAppVersion">v2.2.0</span>
+        <span id="txtAppVersion">v2.2.1</span>
         <span id="dotVersionUpdate" class="update-dot"></span>
       </button>
     </div>
@@ -1813,7 +1840,7 @@
       <button id="seg-0" class="seg-btn active" type="button" onclick="switchTab(0)">总览</button>
       <button id="seg-1" class="seg-btn" type="button" onclick="switchTab(1)">程序 <span id="segCountExes" class="seg-pill-count">0</span></button>
       <button id="seg-2" class="seg-btn" type="button" onclick="switchTab(2)">服务 <span id="segCountSvcs" class="seg-pill-count">0</span></button>
-      <button id="seg-3" class="seg-btn" type="button" onclick="switchTab(3)">域名 <span id="segCountDoms" class="seg-pill-count">41</span></button>
+      <button id="seg-3" class="seg-btn" type="button" onclick="switchTab(3)">域名 <span id="segCountDoms" class="seg-pill-count">60</span></button>
     </nav>
 
     <div class="titlebar-right">
@@ -1827,13 +1854,15 @@
       <button id="btnThemeToggle" class="tb-icon-btn" type="button" title="切换浅色 / 深色主题" onclick="toggleTheme(event)">
         <svg id="iconTheme" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <span class="tb-divider"></span>
-      <button class="tb-icon-btn" type="button" title="最小化" onclick="sendCmd('windowMinimize')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </button>
-      <button class="tb-icon-btn close" type="button" title="关闭" onclick="sendCmd('windowClose')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+      <span class="win-window-controls">
+        <span class="tb-divider"></span>
+        <button class="tb-icon-btn" type="button" title="最小化" onclick="sendCmd('windowMinimize')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button class="tb-icon-btn close" type="button" title="关闭" onclick="sendCmd('windowClose')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </span>
     </div>
   </header>
 
@@ -1899,21 +1928,22 @@
             <span id="pillFw" class="layer-pill">未建立</span>
           </div>
           <div class="layer-body">
-            <div class="layer-name">防火墙出站拦截</div>
+            <div id="lblFwName" class="layer-name">防火墙出站拦截</div>
             <div class="layer-metric">
               <strong id="numFw">0</strong>
               <span id="unitFw">个程序待拦截</span>
             </div>
-            <p class="layer-desc">逐程序建立 Windows 防火墙出站 Block 规则，自动覆盖注册表与自定义盘符安装路径。</p>
+            <p id="lblFwDesc" class="layer-desc">逐程序建立 Windows 防火墙出站 Block 规则，自动覆盖注册表与自定义盘符安装路径。</p>
           </div>
           <div class="layer-foot">
-            <label class="inline-switch-label">
+            <label class="inline-switch-label win-only">
               <span class="ios-switch" style="transform:scale(0.84); transform-origin:left center;">
                 <input type="checkbox" id="chkInbound">
                 <span class="ios-slider"></span>
               </span>
               <span>含入站规则</span>
             </label>
+            <span id="txtMacGuardState" class="macos-only">开机守护未启用</span>
             <button class="layer-link" type="button" onclick="switchTab(1)">查看程序 ›</button>
           </div>
         </article>
@@ -1932,10 +1962,10 @@
           <div class="layer-body">
             <div class="layer-name">Hosts 域名屏蔽</div>
             <div class="layer-metric">
-              <strong id="numHosts">41</strong>
+              <strong id="numHosts">60</strong>
               <span id="unitHosts">个校验域名</span>
             </div>
-            <p class="layer-desc">将激活许可、Genuine 正版弹窗源、自动更新与遥测域名双栈指向 0.0.0.0。</p>
+            <p id="lblHostsDesc" class="layer-desc">将激活许可、Genuine 正版弹窗源、自动更新与遥测域名双栈指向 0.0.0.0。</p>
           </div>
           <div class="layer-foot">
             <span id="txtHostsState" style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">当前未写入</span>
@@ -1958,12 +1988,12 @@
             </label>
           </div>
           <div class="layer-body">
-            <div class="layer-name">服务与计划任务</div>
+            <div id="lblSvcName" class="layer-name">服务与计划任务</div>
             <div class="layer-metric">
               <strong id="numSvc">0</strong>
               <span id="unitSvc">项后台组件</span>
             </div>
-            <p class="layer-desc">停用 AGS / AGM 本地正版校验服务与定时更新任务，撤销时按记录原样恢复。</p>
+            <p id="lblSvcDesc" class="layer-desc">停用 AGS / AGM 本地正版校验服务与定时更新任务，撤销时按记录原样恢复。</p>
           </div>
           <div class="layer-foot">
             <span id="txtSvcState">正在扫描...</span>
@@ -2065,8 +2095,8 @@
       <div id="domainsHostsLayout" class="domains-layout">
         <div class="panel-card">
           <div class="panel-toolbar">
-            <span style="font-size:13px; font-weight:600;">内置屏蔽域名清单 (41 条)</span>
-            <span style="font-size:11.5px; color:var(--emerald); font-weight:600;">0.0.0.0 &amp; ::1</span>
+            <span style="font-size:13px; font-weight:600;">内置屏蔽域名清单 (60 条)</span>
+            <span style="font-size:11.5px; color:var(--emerald); font-weight:600;">0.0.0.0 &amp; IPv6</span>
           </div>
           <div id="builtinDomainsBox" class="domain-list-scroll"></div>
         </div>
@@ -2165,9 +2195,9 @@
       <div class="update-hero">
         <div class="update-hero-top">
           <div class="update-ver-flow">
-            <span id="updCurVer" class="update-ver-tag">v2.2.0</span>
+            <span id="updCurVer" class="update-ver-tag">v2.2.1</span>
             <span id="updArrow" style="color:var(--ink-muted); display:none;">→</span>
-            <span id="updNewVer" class="update-ver-tag new" style="display:none;">v2.2.0</span>
+            <span id="updNewVer" class="update-ver-tag new" style="display:none;">v2.2.1</span>
           </div>
           <span id="updStatusPill" class="layer-pill">等待检查</span>
         </div>
@@ -2229,7 +2259,7 @@
   let isProtectedNow = null;
   let activeTabIndex = 0;
 
-  let appVersion = "2.2.0";
+  let appVersion = "2.2.1";
   let appPlatform = "windows";
   let updateState = null;
   let updateConfig = { autoCheck: true, ignoredVersion: "", lastChecked: "" };
@@ -2513,7 +2543,7 @@
 
   const domainCategories = [
     {
-      title: "激活与许可证校验 (27)",
+      title: "激活与许可证校验 (32)",
       items: [
         "activate.adobe.com", "practivate.adobe.com", "activate-sea.adobe.com", "activate-sjc0.adobe.com",
         "activate.wip3.adobe.com", "activate.wip4.adobe.com", "ereg.adobe.com", "ereg.wip3.adobe.com",
@@ -2521,37 +2551,71 @@
         "3dns-4.adobe.com", "adobe-dns.adobe.com", "adobe-dns-2.adobe.com", "adobe-dns-3.adobe.com",
         "adobe-dns-4.adobe.com", "wwis-dubc1-vip60.adobe.com", "wwis-dubc1-vip61.adobe.com",
         "uds.licenses.adobe.com", "lm.licenses.adobe.com", "lmlicenses.wip4.adobe.com",
-        "licenses.adobe.com", "na1r.services.adobe.com", "na1m-pr.licenses.adobe.com", "na2m-pr.licenses.adobe.com"
+        "licenses.adobe.com", "na1r.services.adobe.com", "na1m-pr.licenses.adobe.com", "na2m-pr.licenses.adobe.com",
+        "workflow.licenses.adobe.com", "workflow-stage.licenses.adobe.com", "oobe.adobe.com",
+        "ans.oobesaas.adobe.com", "hl2rcv.adobe.com"
       ]
     },
     {
-      title: "正版验证弹窗源头 (3)",
-      items: ["genuine.adobe.com", "prod.adobegenuine.com", "adobegenuine.com"]
+      title: "正版验证与现代弹窗源头 (11)",
+      items: [
+        "genuine.adobe.com", "prod.adobegenuine.com", "adobegenuine.com",
+        "lcs-cops.adobe.io", "lcs-ulecs.adobe.io", "lcs-robs.adobe.io",
+        "gcos.adobe.io", "hbc.adobe.io", "fp.adobestats.io",
+        "crs.cr.adobe.com", "utut-service.adobe.com"
+      ]
     },
     {
-      title: "更新与组件下载 (6)",
-      items: ["swupmf.adobe.com", "swupdl.adobe.com", "armmf.adobe.com", "armdl.adobe.com", "prod-wd.adobe.com", "cc-cdn.adobe.com"]
+      title: "更新与组件下载 (7)",
+      items: [
+        "swupmf.adobe.com", "swupdl.adobe.com", "armmf.adobe.com",
+        "armdl.adobe.com", "prod-wd.adobe.com", "cc-cdn.adobe.com", "geo2.adobe.com"
+      ]
     },
     {
-      title: "账号登录与云遥测 (5)",
-      items: ["ims-na1.adobelogin.com", "adobelogin.com", "cc-api-data.adobe.io", "ic.adobe.io", "ccd.storage.adobe.io"]
+      title: "账号登录与云遥测 (10)",
+      items: [
+        "ims-na1.adobelogin.com", "adobelogin.com", "cc-api-data.adobe.io", "ic.adobe.io",
+        "ccd.storage.adobe.io", "adobe.io", "ims-prod06.adobelogin.com", "ims-prod07.adobelogin.com",
+        "p13n.adobe.io", "notify.adobe.io"
+      ]
     }
   ];
 
-  // Frameless window dragging on titlebar empty space
+  // Frameless window dragging on titlebar empty space (Windows only; macOS uses native window title bar)
   document.getElementById("titlebarDrag").addEventListener("mousedown", e => {
+    if (appPlatform === "macos") return;
     if (e.button !== 0) return;
     if (e.target.closest("button, nav, input, a")) return;
     sendCmd("windowDrag");
   });
   document.getElementById("titlebarDrag").addEventListener("dblclick", e => {
+    if (appPlatform === "macos") return;
     if (e.target.closest("button, nav, input, a")) return;
     sendCmd("windowMaximize");
   });
 
+  function applyPlatformChrome(platform) {
+    const isMac = platform === "macos";
+    document.documentElement.classList.toggle("platform-macos", isMac);
+    if (isMac) {
+      const fwName = document.getElementById("lblFwName");
+      const fwDesc = document.getElementById("lblFwDesc");
+      const hostsDesc = document.getElementById("lblHostsDesc");
+      const svcName = document.getElementById("lblSvcName");
+      const svcDesc = document.getElementById("lblSvcDesc");
+      if (fwName) fwName.textContent = "防火墙与通配符 DNS";
+      if (fwDesc) fwDesc.textContent = "启用 macOS 应用防火墙与 /etc/resolver 通配符黑洞，拦截动态 *.adobestats.io 与 *.adobe.io 弹窗校验。";
+      if (hostsDesc) hostsDesc.textContent = "写入 60 个校验域名及 /etc/resolver 通配符黑洞，并自动备份原始 hosts。";
+      if (svcName) svcName.textContent = "正版组件与开机守护";
+      if (svcDesc) svcDesc.textContent = "锁定 AdobeGCClient / AGS / AdobeGCData 并停用 LaunchAgents，重启自动守护且支持一键还原。";
+    }
+  }
+
   function applyTheme(theme, animateIcon = false) {
     document.documentElement.setAttribute("data-theme", theme);
     try { localStorage.setItem("anb-theme", theme); } catch {}
+    sendCmd("setTheme", { value: theme });
     const icon = document.getElementById("iconTheme");
     if (theme === "dark") {
       icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
@@ -2679,14 +2743,20 @@
   }
 
   const mihomoDomainSuffixes = [
-    "adobegenuine.com", "adobelogin.com", "licenses.adobe.com", "wip3.adobe.com", "wip4.adobe.com"
+    "adobegenuine.com", "adobestats.io", "adobe.io", "adobelogin.com",
+    "licenses.adobe.com", "oobesaas.adobe.com", "cr.adobe.com",
+    "wip3.adobe.com", "wip4.adobe.com"
   ];
   const mihomoDomainKeywords = [
-    "adobegenuine", "adobe-dns", "3dns", "lmlicenses"
+    "adobegenuine", "adobestats", "adobe-dns", "3dns", "lmlicenses"
   ];
   const mihomoExtraDomains = [
-    "lcs-cops.adobe.io", "lcs-ulecs.adobe.io", "p13n.adobe.io", "notify.adobe.io",
-    "geo2.adobe.com", "hl2rcv.adobe.com", "oobe.adobe.com",
+    "lcs-cops.adobe.io", "lcs-ulecs.adobe.io", "lcs-robs.adobe.io",
+    "gcos.adobe.io", "hbc.adobe.io", "fp.adobestats.io",
+    "crs.cr.adobe.com", "utut-service.adobe.com",
+    "workflow.licenses.adobe.com", "workflow-stage.licenses.adobe.com",
+    "p13n.adobe.io", "notify.adobe.io",
+    "geo2.adobe.com", "hl2rcv.adobe.com", "oobe.adobe.com", "ans.oobesaas.adobe.com",
     "ims-prod06.adobelogin.com", "ims-prod07.adobelogin.com"
   ];
   const mihomoDefaultProcsWin = [
@@ -3032,15 +3102,27 @@
     // Layer 2: Hosts
     document.getElementById("iconBoxHosts").className = "layer-icon-box " + (hostsOn ? "emerald" : "");
     animateCounter(document.getElementById("numHosts"), s.domainCount);
-    document.getElementById("txtHostsState").textContent = hostsOn
-      ? (s.hostsBackup ? "已写入 · 原文件已备份" : "已写入 hosts")
-      : "当前未写入";
+    if (s.platform === "macos" && s.resolverCount > 0) {
+      document.getElementById("txtHostsState").textContent = `已写入 · ${s.resolverCount} 组通配符黑洞`;
+    } else {
+      document.getElementById("txtHostsState").textContent = hostsOn
+        ? (s.hostsBackup ? "已写入 · 原文件已备份" : "已写入 hosts")
+        : "当前未写入";
+    }
+
+    const macGuardEl = document.getElementById("txtMacGuardState");
+    if (macGuardEl && s.platform === "macos") {
+      macGuardEl.textContent = s.guardEnabled ? "开机持久守护已开启" : "开机守护未启用";
+      macGuardEl.style.color = s.guardEnabled ? "var(--emerald)" : "var(--ink-muted)";
+    }
 
     // Layer 3: Services & Tasks
     document.getElementById("iconBoxSvc").className = "layer-icon-box " + (pendingBg === 0 ? "emerald" : "amber");
     animateCounter(document.getElementById("numSvc"), pendingBg === 0 ? totalBg : pendingBg);
     document.getElementById("unitSvc").textContent = pendingBg === 0 ? "项已全部停用" : "项活动待禁用";
-    document.getElementById("txtSvcState").textContent = `服务 ${s.svcDisabled}/${s.svcTotal} · 任务 ${s.taskDisabled}/${s.taskTotal}`;
+    document.getElementById("txtSvcState").textContent = s.platform === "macos"
+      ? `组件与启动项 ${s.svcDisabled}/${s.svcTotal}`
+      : `服务 ${s.svcDisabled}/${s.svcTotal} · 任务 ${s.taskDisabled}/${s.taskTotal}`;
 
     // Segmented Nav Counts & re-align indicator width after count text updates
     document.getElementById("segCountExes").textContent = allExes.length;
@@ -3055,7 +3137,9 @@
       document.getElementById("footExtraPaths").textContent = `自定义目录 (${s.extraPaths.length})：${s.extraPaths.join("; ")}`;
       document.getElementById("btnClearPaths").style.display = "inline";
     } else {
-      document.getElementById("footExtraPaths").textContent = "拖拽 Adobe 文件夹至此即可附加扫描";
+      document.getElementById("footExtraPaths").textContent = s.platform === "macos"
+        ? "点「+ 自定义目录」可附加扫描其他安装路径"
+        : "拖拽 Adobe 文件夹至此即可附加扫描";
       document.getElementById("btnClearPaths").style.display = "none";
     }
 
@@ -3070,6 +3154,7 @@
     }
     if (typeof s.platform === "string" && s.platform) {
       appPlatform = s.platform;
+      applyPlatformChrome(appPlatform);
     }
     if (s.updateConfig && typeof s.updateConfig === "object") {
       updateConfig = { ...updateConfig, ...s.updateConfig };
@@ -3155,12 +3240,17 @@
   window.addEventListener("resize", () => moveSegIndicator(activeTabIndex));
 
   window.addEventListener("DOMContentLoaded", () => {
+    const isMacHost = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.adobeTools);
+    if (isMacHost) {
+      appPlatform = "macos";
+      applyPlatformChrome("macos");
+    }
     let savedTheme = "light";
     try { savedTheme = localStorage.getItem("anb-theme") || "light"; } catch {}
     applyTheme(savedTheme, false);
     initBuiltinDomains();
     requestAnimationFrame(() => moveSegIndicator(0));
-    appendLog("INFO", "Adobe Tools 原生 C++ / WebView2 引擎已就绪");
+    appendLog("INFO", isMacHost ? "Adobe Tools 原生 Cocoa / WKWebView 引擎已就绪" : "Adobe Tools 原生 C++ / WebView2 引擎已就绪");
     sendCmd("init");
   });
 </script>
