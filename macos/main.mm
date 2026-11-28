@@ -30,9 +30,11 @@
 
 namespace fs = std::filesystem;
 
-static const char* kAppVersion             = "2.2.1";
+static const char* kAppVersion             = "2.2.2";
 static const char* kDefaultUpdateApiUrl    = "https://api.github.com/repos/Rita6333/Adobe-Tools/releases/latest";
 static const char* kDefaultReleasesPageUrl = "https://github.com/Rita6333/Adobe-Tools/releases";
+static const char* kCloudBlocklistPrimary  = "https://a.dove.isdumb.one/list.txt";
+static const char* kCloudBlocklistMirror   = "https://raw.githubusercontent.com/ignaciocastro/a-dove-is-dumb/main/list.txt";
 
 static const char* kHostsBeginPrimary = "# >>> Zaka Adobe Block BEGIN >>>";
 static const char* kHostsEndPrimary   = "# <<< Zaka Adobe Block END <<<";
@@ -74,6 +76,18 @@ static const std::vector<std::string> kBuiltInDomains = {
     "oobe.adobe.com",
     "ans.oobesaas.adobe.com",
     "hl2rcv.adobe.com",
+    "adobeereg.com",
+    "www.adobeereg.com",
+    "prod.iss.adobe.com",
+    "continuity.adobe.io",
+    "cc-collab-api.adobe.io",
+    "creativesdk.adobe.com",
+    "cdn-ffc.oobesaas.adobe.com",
+    "ffc-static-cdn.oobesaas.adobe.com",
+    "k.oobesaas.adobe.com",
+    "adobeid-na1.services.adobe.com",
+    "auth.services.adobe.com",
+    "federatedid-na1.services.adobe.com",
     "genuine.adobe.com",
     "prod.adobegenuine.com",
     "adobegenuine.com",
@@ -101,7 +115,55 @@ static const std::vector<std::string> kBuiltInDomains = {
     "ims-prod06.adobelogin.com",
     "ims-prod07.adobelogin.com",
     "p13n.adobe.io",
-    "notify.adobe.io"
+    "notify.adobe.io",
+    "0mo5a70cqa.adobe.io",
+    "1b9khekel6.adobe.io",
+    "1hzopx6nz7.adobe.io",
+    "22gda3bxkb.adobe.io",
+    "23ynjitwt5.adobe.io",
+    "2ftem87osk.adobe.io",
+    "3ca52znvmj.adobe.io",
+    "3d3wqt96ht.adobe.io",
+    "4hvtkfouhu.adobe.io",
+    "4vzokhpsbs.adobe.io",
+    "5zgzzv92gn.adobe.io",
+    "69tu0xswvq.adobe.io",
+    "7g2gzgk9g1.adobe.io",
+    "7hewqka7ix.adobe.io",
+    "7m31guub0q.adobe.io",
+    "7sj9n87sls.adobe.io",
+    "8n1u6aggep.adobe.io",
+    "8ncdzpmmrg.adobe.io",
+    "9ngulmtgqi.adobe.io",
+    "aoorovjtha.adobe.io",
+    "b5kbg2ggog.adobe.io",
+    "bo3u7sbfvf.adobe.io",
+    "cd536oo20y.adobe.io",
+    "dxyeyf6ecy.adobe.io",
+    "dyzt55url8.adobe.io",
+    "ej4o5b9gac.adobe.io",
+    "fgh5v09kcn.adobe.io",
+    "fqaq3pq1o9.adobe.io",
+    "guzg78logz.adobe.io",
+    "gw8gfjbs05.adobe.io",
+    "h9m2j0ykj7.adobe.io",
+    "hu0em4wmio.adobe.io",
+    "i7pq6fgbsl.adobe.io",
+    "ij0gdyrfka.adobe.io",
+    "ivbnpthtl2.adobe.io",
+    "jc95y2v12r.adobe.io",
+    "lre1kgz2u4.adobe.io",
+    "m59b4msyph.adobe.io",
+    "p0bjuoe16a.adobe.io",
+    "p7uxzbht8h.adobe.io",
+    "ph0f2h2csf.adobe.io",
+    "pojvrj7ho5.adobe.io",
+    "q2ge7bxibl.adobe.io",
+    "r3zj0yju1q.adobe.io",
+    "r5hacgq5w6.adobe.io",
+    "vajcbj9qgq.adobe.io",
+    "vcorzsld2a.adobe.io",
+    "zh9yrmh2lu.adobe.io"
 };
 
 static const std::vector<std::string> kMacResolverDomains = {
@@ -281,6 +343,66 @@ static fs::path GetCustomDomainsPath() {
     return GetUserSupportDir() / "adobe-domains.txt";
 }
 
+static fs::path GetCloudDomainsPath() {
+    return GetUserSupportDir() / "cloud-domains.txt";
+}
+
+static bool IsAllowedCloudAdobeDomain(const std::string& rawDomain) {
+    std::string d = ToLowerAscii(Trim(rawDomain));
+    if (d.size() < 6 || d.size() > 128) return false;
+    for (char c : d) {
+        bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.';
+        if (!ok) return false;
+    }
+    if (d.front() == '.' || d.back() == '.' || d.find("..") != std::string::npos) return false;
+    static const char* kAllowedSuffixes[] = {
+        ".adobe.io", ".adobestats.io", ".adobegenuine.com", ".adobelogin.com",
+        ".adobeereg.com", ".licenses.adobe.com", ".oobesaas.adobe.com", ".cr.adobe.com",
+        ".wip3.adobe.com", ".wip4.adobe.com", ".services.adobe.com", ".adobedtm.com"
+    };
+    static const char* kAllowedExact[] = {
+        "adobe.io", "adobestats.io", "adobegenuine.com", "adobelogin.com",
+        "adobeereg.com", "utut-service.adobe.com", "genuine.adobe.com", "oobe.adobe.com"
+    };
+    for (const char* ex : kAllowedExact) {
+        if (d == ex) return true;
+    }
+    for (const char* suf : kAllowedSuffixes) {
+        size_t slen = strlen(suf);
+        if (d.size() > slen && d.compare(d.size() - slen, slen, suf) == 0) return true;
+    }
+    return false;
+}
+
+static size_t ParseCloudDomainsText(const std::string& text, std::set<std::string>& outDomains) {
+    size_t added = 0;
+    std::istringstream iss(text);
+    std::string line;
+    while (std::getline(iss, line)) {
+        std::string t = Trim(line);
+        if (t.empty() || t[0] == '#') continue;
+        size_t hashPos = t.find('#');
+        if (hashPos != std::string::npos) t = Trim(t.substr(0, hashPos));
+        if (t.empty()) continue;
+        std::istringstream ls(t);
+        std::string tok, lastTok;
+        while (ls >> tok) lastTok = tok;
+        lastTok = ToLowerAscii(Trim(lastTok));
+        if (IsAllowedCloudAdobeDomain(lastTok)) {
+            if (outDomains.insert(lastTok).second) added++;
+        }
+    }
+    return added;
+}
+
+static size_t CountCloudDomainsCached() {
+    std::error_code ec;
+    fs::path cp = GetCloudDomainsPath();
+    if (!fs::exists(cp, ec)) return 0;
+    std::set<std::string> s;
+    return ParseCloudDomainsText(ReadFileUtf8(cp), s);
+}
+
 static fs::path GetStateDir() {
     return fs::path("/usr/local/var/zaka-adobe-block");
 }
@@ -385,8 +507,13 @@ static std::string ApplyHostsToString(const std::string& existingContent, const 
 static std::vector<std::string> GetAdobeDomains() {
     std::set<std::string> setDom;
     for (const auto& d : kBuiltInDomains) setDom.insert(ToLowerAscii(Trim(d)));
+    std::error_code ec;
+    fs::path cloudP = GetCloudDomainsPath();
+    if (fs::exists(cloudP, ec)) {
+        ParseCloudDomainsText(ReadFileUtf8(cloudP), setDom);
+    }
     fs::path cp = GetCustomDomainsPath();
-    if (fs::exists(cp)) {
+    if (fs::exists(cp, ec)) {
         std::istringstream iss(ReadFileUtf8(cp));
         std::string line;
         while (std::getline(iss, line)) {
@@ -798,7 +925,7 @@ static int RunSelfTestEngine(std::function<void(const std::string&, const std::s
 
     std::string applied1 = ApplyHostsToString(orig, kBuiltInDomains);
     check(HostsHasBlock(applied1), "块已写入");
-    check(kBuiltInDomains.size() == 60, "域名条数 = 60");
+    check(kBuiltInDomains.size() == 120, "域名条数 = 120");
 
     bool mod2 = false;
     StripHostsBlock(applied1, &mod2);
@@ -859,9 +986,15 @@ static int RunSelfTestEngine(std::function<void(const std::string&, const std::s
                     (mihomoYaml.find("PROCESS-NAME,Photoshop.exe") != std::string::npos);
     check(mihomoOk, "Mihomo 防侧漏规则集生成包含域名后缀、域名与进程名");
 
+    bool cloudFilterOk = IsAllowedCloudAdobeDomain("0bj2epfqn1.adobestats.io") &&
+                         IsAllowedCloudAdobeDomain("lcs-ulecs.adobe.io") &&
+                         !IsAllowedCloudAdobeDomain("www.google.com") &&
+                         !IsAllowedCloudAdobeDomain("www.baidu.com");
+    check(cloudFilterOk, "云端防弹窗域名白名单过滤准确（绝不拦截非 Adobe 网站）");
+
     if (logFn) {
         logFn(fails == 0 ? "DONE" : "FAIL",
-              fails == 0 ? "SELFTEST_OK — 19 项内置逻辑自检全部通过！" : "SELFTEST_FAIL",
+              fails == 0 ? "SELFTEST_OK — 20 项内置逻辑自检全部通过！" : "SELFTEST_FAIL",
               fails == 0);
     }
     return fails;
@@ -1430,6 +1563,7 @@ static std::string BuildStatusJsonPayload() {
 
     auto apps = FindAdobeApps(extraCopy);
     auto domains = GetAdobeDomains();
+    size_t cloudCount = CountCloudDomainsCached();
     auto items = FindAdobeLaunchItems();
     bool hostsOn = HostsHasBlock(ReadFileUtf8(GetSystemHostsPath()));
     bool hostsBackup = fs::exists(GetStateDir() / "hosts.original");
@@ -1464,13 +1598,15 @@ static std::string BuildStatusJsonPayload() {
         << "\"lastChecked\":\"" << JsonEscape(updCfg.lastChecked) << "\"},";
     oss << "\"isAdmin\":true,";
     oss << "\"fwServiceRunning\":true,";
-    oss << "\"fwRuleCount\":" << (fwBlocked + resolverCount) << ",";
+    oss << "\"fwActiveProfileEnabled\":true,";
+    oss << "\"fwRuleCount\":" << fwBlocked << ",";
     oss << "\"resolverCount\":" << resolverCount << ",";
     oss << "\"guardEnabled\":" << (guardEnabled ? "true" : "false") << ",";
     oss << "\"installedInApps\":" << (installedInApps ? "true" : "false") << ",";
-    oss << "\"hostsEnabled\":" << ((hostsOn || resolverCount > 0) ? "true" : "false") << ",";
+    oss << "\"hostsEnabled\":" << (hostsOn ? "true" : "false") << ",";
     oss << "\"hostsBackup\":" << (hostsBackup ? "true" : "false") << ",";
     oss << "\"domainCount\":" << domains.size() << ",";
+    oss << "\"cloudDomainCount\":" << cloudCount << ",";
     oss << "\"svcTotal\":" << totalLaunch << ",";
     oss << "\"svcDisabled\":" << disabledLaunch << ",";
     oss << "\"taskTotal\":0,\"taskDisabled\":0,";
@@ -1507,6 +1643,82 @@ static void SpawnRefreshAsync() {
     }).detach();
 }
 
+static void SyncCloudDomainsMacAsync() {
+    if (g_workerBusy.exchange(true)) return;
+    SendLogToUI("STEP", "正在同步最新云端防弹窗域名库 (a-dove-is-dumb，仅限 Adobe 域名白名单)...", false);
+    SendProgressToUI(40, "正在同步最新云端 Adobe 防弹窗域名库...");
+
+    std::thread([]() {
+        std::vector<std::pair<std::string, std::string>> sources = {
+            {"a.dove.isdumb.one", kCloudBlocklistPrimary},
+            {"GitHub (a-dove-is-dumb)", kCloudBlocklistMirror}
+        };
+        size_t syncedCount = 0;
+        std::string syncedSrc;
+        std::string lastErr = "无法连接云端防弹窗域名库";
+
+        for (const auto& src : sources) {
+            @autoreleasepool {
+                NSURL* url = [NSURL URLWithString:[NSString stringWithUTF8String:src.second.c_str()]];
+                NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:url
+                                                                   cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
+                                                               timeoutInterval:15.0];
+                [req setValue:[NSString stringWithFormat:@"Adobe-Tools/%s", kAppVersion] forHTTPHeaderField:@"User-Agent"];
+
+                dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+                __block NSData* respData = nil;
+                __block NSInteger statusCode = 0;
+                __block NSError* reqErr = nil;
+
+                NSURLSessionDataTask* task = [[NSURLSession sharedSession] dataTaskWithRequest:req
+                    completionHandler:^(NSData* data, NSURLResponse* response, NSError* error) {
+                        respData = data;
+                        reqErr = error;
+                        if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
+                            statusCode = ((NSHTTPURLResponse*)response).statusCode;
+                        }
+                        dispatch_semaphore_signal(sem);
+                    }];
+                [task resume];
+                dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(18 * NSEC_PER_SEC)));
+
+                if (!reqErr && statusCode >= 200 && statusCode < 300 && respData && respData.length > 0) {
+                    std::string body((const char*)respData.bytes, respData.length);
+                    std::set<std::string> parsed;
+                    ParseCloudDomainsText(body, parsed);
+                    if (parsed.size() >= 10) {
+                        std::ostringstream oss;
+                        oss << "# Adobe Tools Cloud Blocklist (" << src.first << ")\n";
+                        oss << "# Synced: " << CurrentTimeIso() << " | Count: " << parsed.size() << "\n";
+                        for (const auto& d : parsed) oss << d << "\n";
+                        if (WriteFileUtf8(GetCloudDomainsPath(), oss.str())) {
+                            syncedCount = parsed.size();
+                            syncedSrc = src.first;
+                            break;
+                        }
+                        lastErr = "无法写入本地缓存文件";
+                    } else {
+                        lastErr = "云端返回的有效 Adobe 域名条数异常";
+                    }
+                } else if (reqErr) {
+                    lastErr = [reqErr.localizedDescription UTF8String];
+                }
+            }
+        }
+
+        if (syncedCount > 0) {
+            SendProgressToUI(100, "云端防弹窗域名库同步完成");
+            SendLogToUI("DONE", "已从 " + syncedSrc + " 同步 " + std::to_string(syncedCount) + " 个 Adobe 动态防弹窗域名（请点「重新应用拦截」写入 hosts）", true);
+            PostJsonToUI("{\"type\":\"cloudDomainsSynced\",\"count\":" + std::to_string(syncedCount) + "}");
+        } else {
+            SendProgressToUI(0, "同步失败");
+            SendLogToUI("WARN", "同步云端防弹窗域名库失败：" + lastErr, false);
+        }
+        PostJsonToUI(BuildStatusJsonPayload());
+        g_workerBusy = false;
+    }).detach();
+}
+
 static void ExecuteMacApply(bool skipHosts, bool skipServices) {
     if (g_workerBusy.exchange(true)) return;
     std::vector<std::string> extraCopy;
@@ -1516,8 +1728,8 @@ static void ExecuteMacApply(bool skipHosts, bool skipServices) {
     }
 
     std::thread([extraCopy, skipHosts, skipServices]() {
-        SendProgressToUI(15, "正在准备 macOS 深度断网与防弹窗拦截（请在弹窗中输入管理员密码）...");
-        SendLogToUI("STEP", "开始执行 macOS 深度断网拦截（通配符 DNS + hosts + 防火墙 + AGS 锁定 + 开机守护）", false);
+        SendProgressToUI(15, "正在准备 macOS 安全断网与防弹窗拦截（请在弹窗中输入管理员密码）...");
+        SendLogToUI("STEP", "开始执行 macOS 安全断网拦截（hosts + 防火墙 + AGS 锁定 + 温和开机守护）", false);
 
         auto apps = FindAdobeApps(extraCopy);
         auto domains = GetAdobeDomains();
@@ -1541,6 +1753,12 @@ static void ExecuteMacApply(bool skipHosts, bool skipServices) {
         sh << "mkdir -p /usr/local/var/zaka-adobe-block\n";
         sh << "chmod 755 /usr/local/var/zaka-adobe-block\n";
 
+        // Auto-heal: remove any v2.2.1 /etc/resolver files added by Adobe Tools (avoids macOS mDNSResponder/VPN conflicts)
+        for (const auto& rd : kMacResolverDomains) {
+            std::string rp = "/etc/resolver/" + rd;
+            sh << "if [ -f " << ShellSingleQuote(rp) << " ] && grep -q " << ShellSingleQuote(kResolverMarker) << " " << ShellSingleQuote(rp) << " 2>/dev/null; then rm -f " << ShellSingleQuote(rp) << "; fi\n";
+        }
+
         if (needRootInstall) {
             sh << "rm -rf '/Applications/Adobe Tools.app' 2>/dev/null || true\n";
             sh << "ditto " << ShellSingleQuote(curBundle) << " '/Applications/Adobe Tools.app' 2>/dev/null || true\n";
@@ -1553,23 +1771,13 @@ static void ExecuteMacApply(bool skipHosts, bool skipServices) {
             sh << "chmod 644 /etc/hosts\n";
             sh << "cp " << ShellSingleQuote(stagedBlock.string()) << " /usr/local/var/zaka-adobe-block/hosts.block\n";
             sh << "chmod 644 /usr/local/var/zaka-adobe-block/hosts.block\n";
-            sh << "mkdir -p /etc/resolver\n";
-            for (const auto& rd : kMacResolverDomains) {
-                sh << "cat <<'ZAKA_RES_EOF' > " << ShellSingleQuote("/etc/resolver/" + rd) << "\n"
-                   << kResolverMarker << "\n"
-                   << "nameserver 127.0.0.1\n"
-                   << "port 1\n"
-                   << "timeout 1\n"
-                   << "ZAKA_RES_EOF\n";
-                sh << "chmod 644 " << ShellSingleQuote("/etc/resolver/" + rd) << "\n";
-            }
             sh << "dscacheutil -flushcache 2>/dev/null || true\n";
             sh << "killall -HUP mDNSResponder 2>/dev/null || true\n";
         } else {
             sh << "rm -f /usr/local/var/zaka-adobe-block/hosts.block\n";
         }
 
-        sh << "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on >/dev/null 2>&1 || true\n";
+        // Add Adobe apps to Application Firewall without forcing global firewall state changes that could disrupt local proxies
         for (const auto& app : apps) {
             sh << "/usr/libexec/ApplicationFirewall/socketfilterfw --add " << ShellSingleQuote(app) << " >/dev/null 2>&1 || true\n";
             sh << "/usr/libexec/ApplicationFirewall/socketfilterfw --blockapp " << ShellSingleQuote(app) << " >/dev/null 2>&1 || true\n";
@@ -1650,7 +1858,7 @@ static void ExecuteMacApply(bool skipHosts, bool skipServices) {
             sh << "rm -f /usr/local/var/zaka-adobe-block/guard_services.flag\n";
         }
 
-        // Write persistent boot & file-watch guardian script + LaunchDaemon
+        // Write gentle boot guardian (NO WatchPaths on /etc/hosts to prevent VPN/SwitchHosts DNS loops)
         sh << "cat <<'ZAKA_GUARD_HEAD' > /usr/local/var/zaka-adobe-block/guard.sh\n"
            << "#!/bin/bash\n"
            << "set +e\n"
@@ -1664,15 +1872,7 @@ static void ExecuteMacApply(bool skipHosts, bool skipServices) {
            << "    cat /usr/local/var/zaka-adobe-block/hosts.block >> /etc/hosts\n"
            << "    chmod 644 /etc/hosts\n"
            << "    dscacheutil -flushcache 2>/dev/null || true\n"
-           << "    killall -HUP mDNSResponder 2>/dev/null || true\n"
            << "  fi\n"
-           << "  mkdir -p /etc/resolver\n"
-           << "  for rd in adobestats.io adobe.io adobegenuine.com adobelogin.com licenses.adobe.com oobesaas.adobe.com cr.adobe.com wip3.adobe.com wip4.adobe.com services.adobe.com; do\n"
-           << "    if [ ! -f \"/etc/resolver/$rd\" ]; then\n"
-           << "      printf '# Added by Adobe Tools (by RITA)\\nnameserver 127.0.0.1\\nport 1\\ntimeout 1\\n' > \"/etc/resolver/$rd\"\n"
-           << "      chmod 644 \"/etc/resolver/$rd\"\n"
-           << "    fi\n"
-           << "  done\n"
            << "fi\n"
            << "if [ -f /usr/local/var/zaka-adobe-block/guard_services.flag ]; then\n"
            << "  shopt -s nullglob nocaseglob\n"
@@ -1724,14 +1924,7 @@ static void ExecuteMacApply(bool skipHosts, bool skipServices) {
            << "  <key>RunAtLoad</key>\n"
            << "  <true/>\n"
            << "  <key>StartInterval</key>\n"
-           << "  <integer>120</integer>\n"
-           << "  <key>WatchPaths</key>\n"
-           << "  <array>\n"
-           << "    <string>/etc/hosts</string>\n"
-           << "    <string>/Library/LaunchDaemons</string>\n"
-           << "    <string>/Library/LaunchAgents</string>\n"
-           << "    <string>/Library/Application Support/Adobe</string>\n"
-           << "  </array>\n"
+           << "  <integer>300</integer>\n"
            << "</dict>\n"
            << "</plist>\n"
            << "ZAKA_PLIST_EOF\n";
@@ -1751,8 +1944,8 @@ static void ExecuteMacApply(bool skipHosts, bool skipServices) {
         fs::remove(stagedBlock, ec);
 
         if (ok) {
-            SendProgressToUI(100, "macOS 深度断网与防弹窗拦截已生效！");
-            std::string doneMsg = "搞定！已完成通配符 DNS 黑洞 (/etc/resolver)、hosts、应用防火墙、AdobeGCClient/AGS 锁定及开机持久守护。请重启正在运行的 Adobe 软件。";
+            SendProgressToUI(100, "macOS 断网与防弹窗拦截已生效！");
+            std::string doneMsg = "搞定！已完成 " + std::to_string(domains.size()) + " 条域名 hosts 屏蔽、AdobeGCClient/AGS 锁定及开机守护（未改动系统 DNS，不影响正常上网）。请重启正在运行的 Adobe 软件。";
             if (needRootInstall) {
                 doneMsg += " 同时已将 Adobe Tools 永久安装至「应用程序 (/Applications)」。";
             }
@@ -2043,9 +2236,11 @@ static void ExecuteMacRevert() {
         }
     } else if (cmd == "selftest") {
         std::thread([]() {
-            SendLogToUI("STEP", "开始运行内置 19 项 Hosts、自动更新与 Mihomo 规则自检：", false);
+            SendLogToUI("STEP", "开始运行内置 20 项 Hosts、自动更新、Mihomo 与安全过滤自检：", false);
             RunSelfTestEngine(SendLogToUI);
         }).detach();
+    } else if (cmd == "syncCloudDomains") {
+        SyncCloudDomainsMacAsync();
     } else if (cmd == "exportMihomoRules") {
         std::vector<std::string> extraCopy;
         {

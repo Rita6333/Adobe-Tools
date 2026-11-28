@@ -223,10 +223,12 @@ static bool JsonGetBool(const std::string& json, const std::string& key, bool de
 // Constants & Built-in Domains
 // ============================================================================
 
-static const char* kAppVersion             = "2.2.1";
+static const char* kAppVersion             = "2.2.2";
 static const char* kGitHubRepo             = "Rita6333/Adobe-Tools";
 static const char* kDefaultUpdateApiUrl    = "https://api.github.com/repos/Rita6333/Adobe-Tools/releases/latest";
 static const char* kDefaultReleasesPageUrl = "https://github.com/Rita6333/Adobe-Tools/releases";
+static const char* kCloudBlocklistPrimary  = "https://a.dove.isdumb.one/list.txt";
+static const char* kCloudBlocklistMirror   = "https://raw.githubusercontent.com/ignaciocastro/a-dove-is-dumb/main/list.txt";
 
 static const char* kRuleGroupPrimary   = "Zaka Adobe Block";
 static const char* kRuleGroupLegacy    = "ZakaAdobeBlock";
@@ -270,6 +272,18 @@ static const std::vector<std::string> kBuiltInDomains = {
     "oobe.adobe.com",
     "ans.oobesaas.adobe.com",
     "hl2rcv.adobe.com",
+    "adobeereg.com",
+    "www.adobeereg.com",
+    "prod.iss.adobe.com",
+    "continuity.adobe.io",
+    "cc-collab-api.adobe.io",
+    "creativesdk.adobe.com",
+    "cdn-ffc.oobesaas.adobe.com",
+    "ffc-static-cdn.oobesaas.adobe.com",
+    "k.oobesaas.adobe.com",
+    "adobeid-na1.services.adobe.com",
+    "auth.services.adobe.com",
+    "federatedid-na1.services.adobe.com",
     "genuine.adobe.com",
     "prod.adobegenuine.com",
     "adobegenuine.com",
@@ -297,7 +311,55 @@ static const std::vector<std::string> kBuiltInDomains = {
     "ims-prod06.adobelogin.com",
     "ims-prod07.adobelogin.com",
     "p13n.adobe.io",
-    "notify.adobe.io"
+    "notify.adobe.io",
+    "0mo5a70cqa.adobe.io",
+    "1b9khekel6.adobe.io",
+    "1hzopx6nz7.adobe.io",
+    "22gda3bxkb.adobe.io",
+    "23ynjitwt5.adobe.io",
+    "2ftem87osk.adobe.io",
+    "3ca52znvmj.adobe.io",
+    "3d3wqt96ht.adobe.io",
+    "4hvtkfouhu.adobe.io",
+    "4vzokhpsbs.adobe.io",
+    "5zgzzv92gn.adobe.io",
+    "69tu0xswvq.adobe.io",
+    "7g2gzgk9g1.adobe.io",
+    "7hewqka7ix.adobe.io",
+    "7m31guub0q.adobe.io",
+    "7sj9n87sls.adobe.io",
+    "8n1u6aggep.adobe.io",
+    "8ncdzpmmrg.adobe.io",
+    "9ngulmtgqi.adobe.io",
+    "aoorovjtha.adobe.io",
+    "b5kbg2ggog.adobe.io",
+    "bo3u7sbfvf.adobe.io",
+    "cd536oo20y.adobe.io",
+    "dxyeyf6ecy.adobe.io",
+    "dyzt55url8.adobe.io",
+    "ej4o5b9gac.adobe.io",
+    "fgh5v09kcn.adobe.io",
+    "fqaq3pq1o9.adobe.io",
+    "guzg78logz.adobe.io",
+    "gw8gfjbs05.adobe.io",
+    "h9m2j0ykj7.adobe.io",
+    "hu0em4wmio.adobe.io",
+    "i7pq6fgbsl.adobe.io",
+    "ij0gdyrfka.adobe.io",
+    "ivbnpthtl2.adobe.io",
+    "jc95y2v12r.adobe.io",
+    "lre1kgz2u4.adobe.io",
+    "m59b4msyph.adobe.io",
+    "p0bjuoe16a.adobe.io",
+    "p7uxzbht8h.adobe.io",
+    "ph0f2h2csf.adobe.io",
+    "pojvrj7ho5.adobe.io",
+    "q2ge7bxibl.adobe.io",
+    "r3zj0yju1q.adobe.io",
+    "r5hacgq5w6.adobe.io",
+    "vajcbj9qgq.adobe.io",
+    "vcorzsld2a.adobe.io",
+    "zh9yrmh2lu.adobe.io"
 };
 
 // ============================================================================
@@ -320,6 +382,7 @@ static fs::path GetStateDir() {
 
 static fs::path GetStateFilePath() { return GetStateDir() / L"state.json"; }
 static fs::path GetHostsBackupPath() { return GetStateDir() / L"hosts.original"; }
+static fs::path GetCloudDomainsPath() { return GetStateDir() / L"cloud-domains.txt"; }
 static fs::path GetCustomDomainsPath() { return GetAppDir() / L"adobe-domains.txt"; }
 
 static fs::path GetSystemHostsPath() {
@@ -412,10 +475,69 @@ static bool WriteFileUtf8(const fs::path& p, const std::string& content) {
 // Domains & Hosts Engine
 // ============================================================================
 
+static bool IsAllowedCloudAdobeDomain(const std::string& rawDomain) {
+    std::string d = ToLowerAscii(Trim(rawDomain));
+    if (d.size() < 6 || d.size() > 128) return false;
+    for (char c : d) {
+        bool ok = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '.';
+        if (!ok) return false;
+    }
+    if (d.front() == '.' || d.back() == '.' || d.find("..") != std::string::npos) return false;
+    static const char* kAllowedSuffixes[] = {
+        ".adobe.io", ".adobestats.io", ".adobegenuine.com", ".adobelogin.com",
+        ".adobeereg.com", ".licenses.adobe.com", ".oobesaas.adobe.com", ".cr.adobe.com",
+        ".wip3.adobe.com", ".wip4.adobe.com", ".services.adobe.com", ".adobedtm.com"
+    };
+    static const char* kAllowedExact[] = {
+        "adobe.io", "adobestats.io", "adobegenuine.com", "adobelogin.com",
+        "adobeereg.com", "utut-service.adobe.com", "genuine.adobe.com", "oobe.adobe.com"
+    };
+    for (const char* ex : kAllowedExact) {
+        if (d == ex) return true;
+    }
+    for (const char* suf : kAllowedSuffixes) {
+        size_t slen = strlen(suf);
+        if (d.size() > slen && d.compare(d.size() - slen, slen, suf) == 0) return true;
+    }
+    return false;
+}
+
+static size_t ParseCloudDomainsText(const std::string& text, std::set<std::string>& outDomains) {
+    size_t added = 0;
+    std::istringstream iss(text);
+    std::string line;
+    while (std::getline(iss, line)) {
+        std::string t = Trim(line);
+        if (t.empty() || t[0] == '#') continue;
+        size_t hashPos = t.find('#');
+        if (hashPos != std::string::npos) t = Trim(t.substr(0, hashPos));
+        if (t.empty()) continue;
+        std::istringstream ls(t);
+        std::string tok, lastTok;
+        while (ls >> tok) lastTok = tok;
+        lastTok = ToLowerAscii(Trim(lastTok));
+        if (IsAllowedCloudAdobeDomain(lastTok)) {
+            if (outDomains.insert(lastTok).second) added++;
+        }
+    }
+    return added;
+}
+
+static size_t CountCloudDomainsCached() {
+    fs::path cp = GetCloudDomainsPath();
+    if (!fs::exists(cp)) return 0;
+    std::set<std::string> s;
+    return ParseCloudDomainsText(ReadFileUtf8(cp), s);
+}
+
 static std::vector<std::string> GetAdobeDomains() {
     std::set<std::string> uniqueDomains;
     for (const auto& d : kBuiltInDomains) {
         uniqueDomains.insert(ToLowerAscii(Trim(d)));
+    }
+    fs::path cloudPath = GetCloudDomainsPath();
+    if (fs::exists(cloudPath)) {
+        ParseCloudDomainsText(ReadFileUtf8(cloudPath), uniqueDomains);
     }
     fs::path customPath = GetCustomDomainsPath();
     if (fs::exists(customPath)) {
@@ -599,6 +721,146 @@ static std::wstring GetEnvVarW(const wchar_t* name) {
     return n > 0 ? std::wstring(buf, n) : L"";
 }
 
+static std::wstring NormalizeWindowsPathW(const std::wstring& raw) {
+    std::wstring s = raw;
+    while (!s.empty() && (s.front() == L' ' || s.front() == L'\t' || s.front() == L'\"')) s.erase(0, 1);
+    while (!s.empty() && (s.back() == L' ' || s.back() == L'\t' || s.back() == L'\"')) s.pop_back();
+    for (wchar_t& c : s) {
+        if (c == L'/') c = L'\\';
+    }
+    if (s.rfind(L"\\\\?\\", 0) == 0) {
+        s.erase(0, 4);
+    }
+    while (s.size() > 3 && s.back() == L'\\') {
+        s.pop_back();
+    }
+    return s;
+}
+
+static bool PathStartsWithDirW(const std::wstring& pathLower, const std::wstring& dirLower) {
+    if (dirLower.empty() || pathLower.size() < dirLower.size()) return false;
+    if (pathLower.compare(0, dirLower.size(), dirLower) != 0) return false;
+    return pathLower.size() == dirLower.size() || pathLower[dirLower.size()] == L'\\' || dirLower.back() == L'\\';
+}
+
+static bool HasAdobeProductTokenW(const std::wstring& lowerText) {
+    static const wchar_t* kTokens[] = {
+        L"adobe", L"photoshop", L"premiere", L"after effects", L"afterfx",
+        L"illustrator", L"acrobat", L"indesign", L"lightroom", L"audition",
+        L"animate", L"media encoder", L"dreamweaver", L"creative cloud",
+        L"substance", L"bridge", L"incopy", L"prelude", L"character animator",
+        L"dimension", L"fresco", L"adobegcclient", L"agsservice", L"agmservice"
+    };
+    for (const wchar_t* tok : kTokens) {
+        if (lowerText.find(tok) != std::wstring::npos) return true;
+    }
+    return false;
+}
+
+static bool IsDangerousScanRootW(const std::wstring& rawDir, bool requireAdobeToken) {
+    std::wstring norm = NormalizeWindowsPathW(rawDir);
+    if (norm.size() < 4) return true; // Drive root like C:\ or empty
+    std::wstring low = ToLowerWide(norm);
+
+    // Never scan Windows system directories or drive roots
+    std::wstring sysRoot = ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"SystemRoot")));
+    if (sysRoot.empty()) sysRoot = L"c:\\windows";
+    if (PathStartsWithDirW(low, sysRoot)) return true;
+
+    // Never scan top-level shared system/program/user roots
+    std::vector<std::wstring> exactBlocked = {
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"ProgramFiles"))),
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"ProgramFiles(x86)"))),
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"CommonProgramFiles"))),
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"CommonProgramFiles(x86)"))),
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"ProgramData"))),
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"USERPROFILE"))),
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"LOCALAPPDATA"))),
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"APPDATA"))),
+        ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"LOCALAPPDATA") + L"\\Programs"))
+    };
+    for (const auto& b : exactBlocked) {
+        if (!b.empty() && low == b) return true;
+    }
+
+    // Reject generic 1-level roots like D:\Program Files, D:\Software, C:\Users
+    fs::path fp(norm);
+    std::wstring fname = ToLowerWide(fp.filename().wstring());
+    if (fname.empty()) return true;
+    if (low.size() >= 3 && low[1] == L':' && low[2] == L'\\') {
+        std::wstring tail = low.substr(3);
+        if (tail.find(L'\\') == std::wstring::npos) {
+            static const wchar_t* kGenericRoots[] = {
+                L"windows", L"users", L"program files", L"program files (x86)",
+                L"programdata", L"software", L"apps", L"app", L"tools", L"games",
+                L"downloads", L"desktop", L"documents", L"temp", L"tmp"
+            };
+            for (const wchar_t* g : kGenericRoots) {
+                if (tail == g) return true;
+            }
+        }
+    }
+
+    if (requireAdobeToken && !HasAdobeProductTokenW(low)) {
+        return true;
+    }
+    return false;
+}
+
+static bool IsSafeToBlockExecutableW(const std::wstring& rawExePath, bool requireAdobeContext = false) {
+    std::wstring norm = NormalizeWindowsPathW(rawExePath);
+    if (norm.size() < 7 || norm.size() >= MAX_PATH) return false;
+    if (norm.find(L'\"') != std::wstring::npos || norm.find(L'/') != std::wstring::npos) return false;
+
+    std::wstring low = ToLowerWide(norm);
+    if (low.size() < 4 || low.compare(low.size() - 4, 4, L".exe") != 0) return false;
+
+    // Never block anything under C:\Windows
+    std::wstring sysRoot = ToLowerWide(NormalizeWindowsPathW(GetEnvVarW(L"SystemRoot")));
+    if (sysRoot.empty()) sysRoot = L"c:\\windows";
+    if (PathStartsWithDirW(low, sysRoot)) return false;
+
+    // Never block our own Adobe Tools executable
+    wchar_t selfBuf[MAX_PATH * 2] = {0};
+    if (GetModuleFileNameW(nullptr, selfBuf, MAX_PATH * 2) > 0) {
+        std::wstring selfLow = ToLowerWide(NormalizeWindowsPathW(selfBuf));
+        if (low == selfLow) return false;
+    }
+
+    std::wstring fname = ToLowerWide(fs::path(norm).filename().wstring());
+    if (fname == L"adobe tools.exe" || fname == L"adobe.tools.exe") return false;
+
+    // Hard safeguard: never block system, browser, proxy/VPN, or messaging executables
+    static const wchar_t* kProtectedExact[] = {
+        L"svchost.exe", L"lsass.exe", L"services.exe", L"csrss.exe", L"wininit.exe",
+        L"msiexec.exe", L"explorer.exe", L"cmd.exe", L"powershell.exe", L"pwsh.exe",
+        L"conhost.exe", L"rundll32.exe", L"regsvr32.exe", L"spoolsv.exe", L"taskhostw.exe",
+        L"chrome.exe", L"msedge.exe", L"msedgewebview2.exe", L"firefox.exe", L"brave.exe",
+        L"opera.exe", L"vivaldi.exe", L"qqbrowser.exe", L"360chrome.exe", L"360se.exe", L"quark.exe",
+        L"wechat.exe", L"weixin.exe", L"qq.exe", L"tim.exe", L"telegram.exe", L"discord.exe",
+        L"steam.exe", L"dingtalk.exe", L"feishu.exe", L"lark.exe",
+        L"mihomo.exe", L"clash.exe", L"clash-verge.exe", L"clash-nyanpasu.exe",
+        L"v2ray.exe", L"v2rayn.exe", L"xray.exe", L"sing-box.exe", L"flclash.exe",
+        L"tailscale.exe", L"tailscaled.exe", L"wireguard.exe", L"openvpn.exe"
+    };
+    for (const wchar_t* p : kProtectedExact) {
+        if (fname == p) return false;
+    }
+    static const wchar_t* kProtectedPrefixes[] = {
+        L"clash", L"mihomo", L"v2ray", L"xray", L"sing-box", L"nekoray", L"nekobox",
+        L"hysteria", L"shadowsocks", L"wireguard", L"tailscale", L"openvpn"
+    };
+    for (const wchar_t* pre : kProtectedPrefixes) {
+        size_t len = wcslen(pre);
+        if (fname.size() >= len && fname.compare(0, len, pre) == 0) return false;
+    }
+
+    if (requireAdobeContext && !HasAdobeProductTokenW(low)) {
+        return false;
+    }
+    return true;
+}
+
 static void ScanRegistryUninstallDirs(HKEY rootKey, const wchar_t* subKeyPath, std::set<std::wstring>& roots) {
     HKEY hUninst = nullptr;
     if (RegOpenKeyExW(rootKey, subKeyPath, 0, KEY_READ, &hUninst) != ERROR_SUCCESS) return;
@@ -623,22 +885,24 @@ static void ScanRegistryUninstallDirs(HKEY rootKey, const wchar_t* subKeyPath, s
 
             std::wstring dn = ToLowerWide(readRegStr(L"DisplayName"));
             std::wstring pub = ToLowerWide(readRegStr(L"Publisher"));
-            if (dn.find(L"adobe") == 0 || pub.find(L"adobe") == 0) {
-                std::wstring loc = readRegStr(L"InstallLocation");
-                if (!loc.empty()) {
-                    if (loc.front() == L'\"') loc.erase(0, 1);
-                    if (!loc.empty() && loc.back() == L'\"') loc.pop_back();
-                    if (fs::exists(loc)) roots.insert(loc);
+            bool isAdobeEntry = HasAdobeProductTokenW(dn) || (pub.find(L"adobe") != std::wstring::npos);
+            if (isAdobeEntry) {
+                std::wstring loc = NormalizeWindowsPathW(readRegStr(L"InstallLocation"));
+                std::error_code ec;
+                if (!loc.empty() && !IsDangerousScanRootW(loc, true) && fs::exists(loc, ec)) {
+                    roots.insert(loc);
                 }
                 std::wstring icon = readRegStr(L"DisplayIcon");
                 if (!icon.empty()) {
                     size_t comma = icon.find(L',');
                     if (comma != std::wstring::npos) icon = icon.substr(0, comma);
-                    if (!icon.empty() && icon.front() == L'\"') icon.erase(0, 1);
-                    if (!icon.empty() && icon.back() == L'\"') icon.pop_back();
+                    icon = NormalizeWindowsPathW(icon);
                     fs::path ip(icon);
-                    if (fs::exists(ip) && ip.has_parent_path()) {
-                        roots.insert(ip.parent_path().wstring());
+                    if (!icon.empty() && fs::exists(ip, ec) && ip.has_parent_path()) {
+                        std::wstring parent = NormalizeWindowsPathW(ip.parent_path().wstring());
+                        if (!IsDangerousScanRootW(parent, true)) {
+                            roots.insert(parent);
+                        }
                     }
                 }
             }
@@ -648,13 +912,106 @@ static void ScanRegistryUninstallDirs(HKEY rootKey, const wchar_t* subKeyPath, s
     RegCloseKey(hUninst);
 }
 
+static void ScanRegistryAppPaths(std::set<std::wstring>& roots) {
+    static const wchar_t* kAdobeAppExeKeys[] = {
+        L"Adobe Premiere Pro.exe",
+        L"Photoshop.exe",
+        L"AfterFX.exe",
+        L"Illustrator.exe",
+        L"Acrobat.exe",
+        L"AcroRd32.exe",
+        L"InDesign.exe",
+        L"Lightroom.exe",
+        L"LightroomClassic.exe",
+        L"Audition.exe",
+        L"Adobe Media Encoder.exe",
+        L"Animate.exe",
+        L"Bridge.exe",
+        L"Dreamweaver.exe",
+        L"Creative Cloud.exe"
+    };
+    const wchar_t* baseKey = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\";
+    std::error_code ec;
+    for (const wchar_t* exeKey : kAdobeAppExeKeys) {
+        HKEY hKey = nullptr;
+        std::wstring fullKey = std::wstring(baseKey) + exeKey;
+        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, fullKey.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+            wchar_t val[1024] = {0};
+            DWORD sz = sizeof(val);
+            DWORD type = 0;
+            if (RegQueryValueExW(hKey, L"Path", nullptr, &type, (LPBYTE)val, &sz) == ERROR_SUCCESS &&
+                (type == REG_SZ || type == REG_EXPAND_SZ)) {
+                std::wstring dir = NormalizeWindowsPathW(val);
+                if (!IsDangerousScanRootW(dir, true) && fs::exists(dir, ec)) roots.insert(dir);
+            }
+            sz = sizeof(val);
+            if (RegQueryValueExW(hKey, nullptr, nullptr, &type, (LPBYTE)val, &sz) == ERROR_SUCCESS &&
+                (type == REG_SZ || type == REG_EXPAND_SZ)) {
+                std::wstring exeP = NormalizeWindowsPathW(val);
+                fs::path fp(exeP);
+                if (fs::exists(fp, ec) && fp.has_parent_path()) {
+                    std::wstring dir = NormalizeWindowsPathW(fp.parent_path().wstring());
+                    if (!IsDangerousScanRootW(dir, true)) roots.insert(dir);
+                }
+            }
+            RegCloseKey(hKey);
+        }
+    }
+}
+
+static void ScanFixedDrivesForAdobeDirs(std::set<std::wstring>& roots) {
+    DWORD mask = GetLogicalDrives();
+    std::error_code ec;
+    for (int i = 0; i < 26; ++i) {
+        if ((mask & (1u << i)) == 0) continue;
+        std::wstring driveRoot;
+        driveRoot += static_cast<wchar_t>(L'A' + i);
+        driveRoot += L":\\";
+        if (GetDriveTypeW(driveRoot.c_str()) != DRIVE_FIXED) continue;
+
+        static const wchar_t* kDirectSubs[] = {
+            L"Adobe",
+            L"Program Files\\Adobe",
+            L"Program Files (x86)\\Adobe",
+            L"Program Files\\Common Files\\Adobe",
+            L"Program Files (x86)\\Common Files\\Adobe"
+        };
+        for (const wchar_t* sub : kDirectSubs) {
+            fs::path p = fs::path(driveRoot) / sub;
+            if (fs::exists(p, ec) && fs::is_directory(p, ec)) {
+                roots.insert(NormalizeWindowsPathW(p.wstring()));
+            }
+        }
+
+        // Catch common custom/repack install directories like D:\Premiere Pro 2025, E:\PhotoShop2025, D:\Software\Adobe
+        for (const auto& entry : fs::directory_iterator(fs::path(driveRoot), fs::directory_options::skip_permission_denied, ec)) {
+            if (!entry.is_directory(ec)) continue;
+            std::wstring fn = ToLowerWide(entry.path().filename().wstring());
+            if (HasAdobeProductTokenW(fn)) {
+                std::wstring cand = NormalizeWindowsPathW(entry.path().wstring());
+                if (!IsDangerousScanRootW(cand, true)) roots.insert(cand);
+            } else if (fn == L"software" || fn == L"program files" || fn == L"program files (x86)" || fn == L"apps") {
+                std::error_code ec2;
+                for (const auto& subEntry : fs::directory_iterator(entry.path(), fs::directory_options::skip_permission_denied, ec2)) {
+                    if (!subEntry.is_directory(ec2)) continue;
+                    std::wstring sfn = ToLowerWide(subEntry.path().filename().wstring());
+                    if (HasAdobeProductTokenW(sfn)) {
+                        std::wstring cand = NormalizeWindowsPathW(subEntry.path().wstring());
+                        if (!IsDangerousScanRootW(cand, true)) roots.insert(cand);
+                    }
+                }
+            }
+        }
+    }
+}
+
 static std::vector<std::string> FindAdobeExecutables(const std::vector<std::string>& extraPaths) {
-    std::set<std::wstring> roots;
+    std::set<std::wstring> autoRoots;
     auto addEnvSub = [&](const wchar_t* envName, const wchar_t* sub) {
         std::wstring base = GetEnvVarW(envName);
         if (!base.empty()) {
             fs::path p = fs::path(base) / sub;
-            roots.insert(p.wstring());
+            autoRoots.insert(NormalizeWindowsPathW(p.wstring()));
         }
     };
 
@@ -668,49 +1025,67 @@ static std::vector<std::string> FindAdobeExecutables(const std::vector<std::stri
     std::wstring localApp = GetEnvVarW(L"LOCALAPPDATA");
     if (!localApp.empty()) {
         fs::path progs = fs::path(localApp) / L"Programs";
-        if (fs::exists(progs)) {
-            std::error_code ec;
+        std::error_code ec;
+        if (fs::exists(progs, ec)) {
             for (const auto& entry : fs::directory_iterator(progs, ec)) {
                 if (entry.is_directory(ec)) {
                     std::wstring fname = ToLowerWide(entry.path().filename().wstring());
-                    if (fname.find(L"adobe") != std::wstring::npos) {
-                        roots.insert(entry.path().wstring());
+                    if (HasAdobeProductTokenW(fname)) {
+                        autoRoots.insert(NormalizeWindowsPathW(entry.path().wstring()));
                     }
                 }
             }
         }
     }
 
-    ScanRegistryUninstallDirs(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", roots);
-    ScanRegistryUninstallDirs(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall", roots);
-    ScanRegistryUninstallDirs(HKEY_CURRENT_USER,  L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", roots);
-
-    for (const auto& ep : extraPaths) {
-        if (!ep.empty()) roots.insert(Utf8ToWide(ep));
-    }
+    ScanRegistryUninstallDirs(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", autoRoots);
+    ScanRegistryUninstallDirs(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall", autoRoots);
+    ScanRegistryUninstallDirs(HKEY_CURRENT_USER,  L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", autoRoots);
+    ScanRegistryAppPaths(autoRoots);
+    ScanFixedDrivesForAdobeDirs(autoRoots);
 
     std::map<std::wstring, std::string> uniqueExes;
     std::error_code ec;
 
-    for (const auto& r : roots) {
+    auto scanRoot = [&](const std::wstring& r, bool isUserExtra) {
+        if (IsDangerousScanRootW(r, !isUserExtra)) return;
+        bool requireAdobeCtx = isUserExtra && !HasAdobeProductTokenW(ToLowerWide(r));
         fs::path rp(r);
-        if (!fs::exists(rp, ec)) continue;
+        if (!fs::exists(rp, ec)) return;
         if (fs::is_regular_file(rp, ec)) {
-            if (ToLowerWide(rp.extension().wstring()) == L".exe") {
-                uniqueExes[ToLowerWide(rp.wstring())] = WideToUtf8(rp.wstring());
+            std::wstring norm = NormalizeWindowsPathW(rp.wstring());
+            if (IsSafeToBlockExecutableW(norm, requireAdobeCtx)) {
+                uniqueExes[ToLowerWide(norm)] = WideToUtf8(norm);
             }
-            continue;
+            return;
         }
         fs::recursive_directory_iterator it(rp, fs::directory_options::skip_permission_denied, ec);
         fs::recursive_directory_iterator end;
         while (it != end) {
+            std::wstring curLow = ToLowerWide(it->path().wstring());
+            if (curLow.find(L".zaka-disabled") != std::wstring::npos) {
+                it.disable_recursion_pending();
+                it.increment(ec);
+                continue;
+            }
             if (it->is_regular_file(ec)) {
                 if (ToLowerWide(it->path().extension().wstring()) == L".exe") {
-                    std::wstring fullW = it->path().wstring();
-                    uniqueExes[ToLowerWide(fullW)] = WideToUtf8(fullW);
+                    std::wstring norm = NormalizeWindowsPathW(it->path().wstring());
+                    if (IsSafeToBlockExecutableW(norm, requireAdobeCtx)) {
+                        uniqueExes[ToLowerWide(norm)] = WideToUtf8(norm);
+                    }
                 }
             }
             it.increment(ec);
+        }
+    };
+
+    for (const auto& r : autoRoots) {
+        scanRoot(r, false);
+    }
+    for (const auto& ep : extraPaths) {
+        if (!ep.empty()) {
+            scanRoot(NormalizeWindowsPathW(Utf8ToWide(ep)), true);
         }
     }
 
@@ -849,9 +1224,100 @@ static int ClearFirewallRules() {
     return removed;
 }
 
+static bool IsFirewallActiveForCurrentProfile() {
+    if (!IsFirewallServiceRunning()) return false;
+    INetFwPolicy2* pPolicy = nullptr;
+    HRESULT hr = CoCreateInstance(__uuidof(NetFwPolicy2), nullptr, CLSCTX_INPROC_SERVER, __uuidof(INetFwPolicy2), (void**)&pPolicy);
+    if (FAILED(hr) || !pPolicy) return false;
+
+    long curTypes = 0;
+    bool activeEnabled = false;
+    if (SUCCEEDED(pPolicy->get_CurrentProfileTypes(&curTypes)) && curTypes != 0) {
+        NET_FW_PROFILE_TYPE2 profiles[] = { NET_FW_PROFILE2_DOMAIN, NET_FW_PROFILE2_PRIVATE, NET_FW_PROFILE2_PUBLIC };
+        bool checkedAny = false;
+        activeEnabled = true;
+        for (auto prof : profiles) {
+            if ((curTypes & prof) != 0) {
+                checkedAny = true;
+                VARIANT_BOOL enabled = VARIANT_FALSE;
+                if (FAILED(pPolicy->get_FirewallEnabled(prof, &enabled)) || enabled == VARIANT_FALSE) {
+                    activeEnabled = false;
+                }
+            }
+        }
+        if (!checkedAny) activeEnabled = false;
+    }
+    pPolicy->Release();
+    return activeEnabled;
+}
+
+static int SanitizeCorruptFirewallRules() {
+    INetFwPolicy2* pPolicy = nullptr;
+    HRESULT hr = CoCreateInstance(__uuidof(NetFwPolicy2), nullptr, CLSCTX_INPROC_SERVER, __uuidof(INetFwPolicy2), (void**)&pPolicy);
+    if (FAILED(hr) || !pPolicy) return 0;
+
+    int removed = 0;
+    INetFwRules* pRules = nullptr;
+    if (SUCCEEDED(pPolicy->get_Rules(&pRules)) && pRules) {
+        std::vector<BSTR> badNames;
+        IUnknown* pUnk = nullptr;
+        if (SUCCEEDED(pRules->get__NewEnum(&pUnk)) && pUnk) {
+            IEnumVARIANT* pEnum = nullptr;
+            if (SUCCEEDED(pUnk->QueryInterface(__uuidof(IEnumVARIANT), (void**)&pEnum)) && pEnum) {
+                VARIANT var;
+                VariantInit(&var);
+                ULONG fetched = 0;
+                while (pEnum->Next(1, &var, &fetched) == S_OK && fetched > 0) {
+                    if (var.vt == VT_DISPATCH && var.pdispVal) {
+                        INetFwRule* pRule = nullptr;
+                        if (SUCCEEDED(var.pdispVal->QueryInterface(__uuidof(INetFwRule), (void**)&pRule)) && pRule) {
+                            BSTR bName = nullptr;
+                            if (IsOurFirewallRule(pRule, &bName) && bName) {
+                                BSTR bApp = nullptr;
+                                bool isBad = false;
+                                if (FAILED(pRule->get_ApplicationName(&bApp)) || !bApp || wcslen(bApp) == 0) {
+                                    // CRITICAL: Rule with NULL/empty ApplicationName blocks ALL programs!
+                                    isBad = true;
+                                } else {
+                                    std::wstring appW(bApp);
+                                    if (!IsSafeToBlockExecutableW(appW, false)) {
+                                        isBad = true;
+                                    }
+                                    SysFreeString(bApp);
+                                }
+                                if (isBad) {
+                                    badNames.push_back(bName);
+                                } else {
+                                    SysFreeString(bName);
+                                }
+                            }
+                            pRule->Release();
+                        }
+                    }
+                    VariantClear(&var);
+                }
+                pEnum->Release();
+            }
+            pUnk->Release();
+        }
+        for (BSTR bName : badNames) {
+            if (SUCCEEDED(pRules->Remove(bName))) removed++;
+            SysFreeString(bName);
+        }
+        pRules->Release();
+    }
+    pPolicy->Release();
+    return removed;
+}
+
 static bool AddFirewallBlockRule(const std::string& exePath, bool inbound) {
-    std::wstring ruleName = BuildFirewallRuleName(exePath, inbound);
-    std::wstring exeW = Utf8ToWide(exePath);
+    std::wstring exeW = NormalizeWindowsPathW(Utf8ToWide(exePath));
+    std::error_code ec;
+    if (!IsSafeToBlockExecutableW(exeW, false) || !fs::is_regular_file(fs::path(exeW), ec)) {
+        return false;
+    }
+
+    std::wstring ruleName = BuildFirewallRuleName(WideToUtf8(exeW), inbound);
 
     INetFwPolicy2* pPolicy = nullptr;
     HRESULT hr = CoCreateInstance(__uuidof(NetFwPolicy2), nullptr, CLSCTX_INPROC_SERVER, __uuidof(INetFwPolicy2), (void**)&pPolicy);
@@ -867,16 +1333,29 @@ static bool AddFirewallBlockRule(const std::string& exePath, bool inbound) {
                 BSTR bApp  = SysAllocString(exeW.c_str());
                 BSTR bGrp  = SysAllocString(L"Zaka Adobe Block");
 
-                pRule->put_Name(bRuleName);
-                pRule->put_Description(bDesc);
-                pRule->put_ApplicationName(bApp);
-                pRule->put_Direction(inbound ? NET_FW_RULE_DIR_IN : NET_FW_RULE_DIR_OUT);
-                pRule->put_Action(NET_FW_ACTION_BLOCK);
-                pRule->put_Enabled(VARIANT_TRUE);
-                pRule->put_Profiles(NET_FW_PROFILE2_ALL);
-                pRule->put_Grouping(bGrp);
+                HRESULT h1 = pRule->put_Name(bRuleName);
+                HRESULT h2 = pRule->put_Description(bDesc);
+                HRESULT h3 = pRule->put_ApplicationName(bApp);
+                HRESULT h4 = pRule->put_Direction(inbound ? NET_FW_RULE_DIR_IN : NET_FW_RULE_DIR_OUT);
+                HRESULT h5 = pRule->put_Action(NET_FW_ACTION_BLOCK);
+                HRESULT h6 = pRule->put_Profiles(NET_FW_PROFILE2_ALL);
+                HRESULT h7 = pRule->put_Grouping(bGrp);
+                HRESULT h8 = pRule->put_Enabled(VARIANT_TRUE);
 
-                HRESULT addHr = pRules->Add(pRule);
+                // Ironclad safeguard: verify ApplicationName actually stuck before adding to Windows Firewall!
+                // Never allow a rule with NULL/empty ApplicationName (which would block ALL computer internet).
+                bool appVerified = false;
+                if (SUCCEEDED(h1) && SUCCEEDED(h2) && SUCCEEDED(h3) && SUCCEEDED(h4) &&
+                    SUCCEEDED(h5) && SUCCEEDED(h6) && SUCCEEDED(h7) && SUCCEEDED(h8)) {
+                    BSTR bVerifyApp = nullptr;
+                    if (SUCCEEDED(pRule->get_ApplicationName(&bVerifyApp)) && bVerifyApp && wcslen(bVerifyApp) >= 7) {
+                        std::wstring vW = NormalizeWindowsPathW(bVerifyApp);
+                        appVerified = IsSafeToBlockExecutableW(vW, false);
+                    }
+                    if (bVerifyApp) SysFreeString(bVerifyApp);
+                }
+
+                HRESULT addHr = appVerified ? pRules->Add(pRule) : E_INVALIDARG;
 
                 SysFreeString(bDesc);
                 SysFreeString(bApp);
@@ -886,6 +1365,7 @@ static bool AddFirewallBlockRule(const std::string& exePath, bool inbound) {
                 pRules->Release();
                 pPolicy->Release();
                 if (SUCCEEDED(addHr)) return true;
+                if (!appVerified) return false;
             } else {
                 SysFreeString(bRuleName);
                 pRules->Release();
@@ -896,7 +1376,7 @@ static bool AddFirewallBlockRule(const std::string& exePath, bool inbound) {
         }
     }
 
-    // Fallback to netsh
+    // Fallback to netsh only for strictly verified safe Adobe exe paths
     std::wstring dirFlag = inbound ? L"in" : L"out";
     RunHiddenCommand(L"netsh.exe advfirewall firewall delete rule name=\"" + ruleName + L"\"");
     int rc = RunHiddenCommand(L"netsh.exe advfirewall firewall add rule name=\"" + ruleName +
@@ -1900,12 +2380,21 @@ static HINTERNET OpenUpdateSession() {
     return hSess;
 }
 
+static bool IsAllowedCloudBlocklistUrl(const std::string& url) {
+    ParsedUrl u;
+    if (!CrackUrlUtf8(url, u)) return false;
+    if (!u.isHttps) return false;
+    std::string host = ToLowerAscii(WideToUtf8(u.host));
+    return host == "a.dove.isdumb.one" || host == "raw.githubusercontent.com";
+}
+
 static bool WinHttpGetString(const std::string& url, const std::wstring& extraHeaders,
-                             DWORD& outStatusCode, std::string& outBody, std::string& errOut) {
+                             DWORD& outStatusCode, std::string& outBody, std::string& errOut,
+                             bool allowCloudBlocklist = false) {
     outStatusCode = 0;
     outBody.clear();
-    if (!IsAllowedUpdateUrl(url)) {
-        errOut = "更新地址不受信任，已拒绝请求";
+    if (!(IsAllowedUpdateUrl(url) || (allowCloudBlocklist && IsAllowedCloudBlocklistUrl(url)))) {
+        errOut = "请求地址不受信任，已拒绝连接";
         return false;
     }
     ParsedUrl u;
@@ -2529,8 +3018,162 @@ static bool ExportMihomoRulesToDisk(const std::vector<std::string>& extraPaths, 
     return false;
 }
 
+static bool SyncCloudBlocklistSync(size_t& outCount, std::string& outSource, std::string& errOut) {
+    outCount = 0;
+    outSource.clear();
+    std::vector<std::pair<std::string, std::string>> sources = {
+        {"a.dove.isdumb.one", kCloudBlocklistPrimary},
+        {"GitHub (a-dove-is-dumb)", kCloudBlocklistMirror}
+    };
+    std::string lastErr = "无法连接云端防弹窗域名库";
+    for (const auto& src : sources) {
+        DWORD status = 0;
+        std::string body, err;
+        if (WinHttpGetString(src.second, L"", status, body, err, true) && status >= 200 && status < 300 && !body.empty()) {
+            std::set<std::string> parsed;
+            ParseCloudDomainsText(body, parsed);
+            if (parsed.size() >= 10) {
+                std::ostringstream oss;
+                oss << "# Adobe Tools Cloud Blocklist (" << src.first << ")\r\n";
+                oss << "# Synced: " << CurrentTimeIso() << " | Count: " << parsed.size() << "\r\n";
+                for (const auto& d : parsed) {
+                    oss << d << "\r\n";
+                }
+                if (!WriteFileUtf8(GetCloudDomainsPath(), oss.str())) {
+                    errOut = "云端规则已下载，但无法写入本地缓存目录";
+                    return false;
+                }
+                outCount = parsed.size();
+                outSource = src.first;
+                return true;
+            }
+            lastErr = "云端返回的有效 Adobe 域名条数异常";
+        } else if (!err.empty()) {
+            lastErr = err;
+        }
+    }
+    errOut = lastErr;
+    return false;
+}
+
 // ============================================================================
-// 19-Point Built-in Self-Test (13 Hosts + 5 Auto-Update + 1 Mihomo Rule-Set)
+// Windows Genuine Integrity Folders (AdobeGCClient / AdobeGCData)
+// ============================================================================
+
+struct WindowsGenuineTarget {
+    std::string kind;
+    std::string name;
+    fs::path path;
+};
+
+static std::vector<WindowsGenuineTarget> GetWindowsGenuineTargets() {
+    std::vector<WindowsGenuineTarget> list;
+    auto addIfParent = [&](const std::string& kind, const std::string& name, const fs::path& p) {
+        if (!p.empty()) list.push_back({kind, name, p});
+    };
+    std::wstring pf86 = GetEnvVarW(L"ProgramFiles(x86)");
+    std::wstring pf64 = GetEnvVarW(L"ProgramFiles");
+    std::wstring pdata = GetEnvVarW(L"ProgramData");
+    std::wstring localApp = GetEnvVarW(L"LOCALAPPDATA");
+    std::wstring roamApp = GetEnvVarW(L"APPDATA");
+    std::wstring pubDir = GetEnvVarW(L"PUBLIC");
+
+    if (!pf86.empty()) addIfParent("正版弹窗组件", "AdobeGCClient (x86)", fs::path(pf86) / L"Common Files\\Adobe\\AdobeGCClient");
+    if (!pf64.empty()) addIfParent("正版弹窗组件", "AdobeGCClient (x64)", fs::path(pf64) / L"Common Files\\Adobe\\AdobeGCClient");
+    if (!pdata.empty()) {
+        addIfParent("正版缓存状态", "ProgramData AdobeGCClient", fs::path(pdata) / L"Adobe\\AdobeGCClient");
+        addIfParent("正版缓存状态", "ProgramData AdobeGCData", fs::path(pdata) / L"Adobe\\AdobeGCData");
+    }
+    if (!pubDir.empty()) addIfParent("正版缓存状态", "Public AdobeGCData", fs::path(pubDir) / L"Documents\\AdobeGCData");
+    if (!localApp.empty()) addIfParent("用户正版缓存", "LocalAppData AdobeGCClient", fs::path(localApp) / L"Adobe\\AdobeGCClient");
+    if (!roamApp.empty()) addIfParent("用户正版缓存", "AppData AdobeGCClient", fs::path(roamApp) / L"Adobe\\AdobeGCClient");
+    return list;
+}
+
+static std::vector<ServiceOrTaskInfo> FindWindowsGenuineComponents() {
+    std::vector<ServiceOrTaskInfo> out;
+    std::error_code ec;
+    for (const auto& t : GetWindowsGenuineTargets()) {
+        fs::path bak(t.path.wstring() + L".zaka-disabled");
+        bool hasOrig = fs::exists(t.path, ec);
+        bool hasBak = fs::exists(bak, ec);
+        if (!hasOrig && !hasBak) continue;
+        bool disabled = hasBak && !hasOrig;
+        out.push_back({
+            t.kind,
+            t.name,
+            WideToUtf8(t.path.wstring()),
+            disabled ? "Disabled" : "Ready",
+            disabled ? "Disabled" : "Enabled"
+        });
+    }
+    return out;
+}
+
+static void KillAdobeGenuineProcessesWindows() {
+    static const wchar_t* kProcs[] = {
+        L"AdobeGCClient.exe",
+        L"AGSService.exe",
+        L"AGMService.exe",
+        L"Adobe Genuine Helper.exe",
+        L"adobe_licensing_wf.exe",
+        L"adobe_licensing_wf_helper.exe",
+        L"adobe_licensing_helper.exe",
+        L"AdobeIPCBroker.exe",
+        L"CCXProcess.exe",
+        L"CoreSync.exe",
+        L"AdobeUpdateService.exe",
+        L"Creative Cloud.exe",
+        L"Creative Cloud Helper.exe",
+        L"Adobe Desktop Service.exe",
+        L"AdobeNotificationClient.exe"
+    };
+    for (const wchar_t* proc : kProcs) {
+        RunHiddenCommand(std::wstring(L"taskkill.exe /F /IM \"") + proc + L"\"");
+    }
+}
+
+static int DisableWindowsGenuineComponents(std::function<void(const std::string&, const std::string&, bool)> logFn) {
+    int count = 0;
+    std::error_code ec;
+    for (const auto& t : GetWindowsGenuineTargets()) {
+        fs::path bak(t.path.wstring() + L".zaka-disabled");
+        if (!fs::exists(t.path, ec)) continue;
+        if (fs::exists(bak, ec)) {
+            fs::remove_all(t.path, ec);
+            if (!ec) {
+                count++;
+                if (logFn) logFn("OK", "已清理重建的正版弹窗目录: " + t.name, false);
+            }
+        } else {
+            fs::rename(t.path, bak, ec);
+            if (!ec) {
+                count++;
+                if (logFn) logFn("OK", "已备份并禁用正版弹窗目录: " + t.name, false);
+            }
+        }
+    }
+    return count;
+}
+
+static int RestoreWindowsGenuineComponents(std::function<void(const std::string&, const std::string&, bool)> logFn) {
+    int count = 0;
+    std::error_code ec;
+    for (const auto& t : GetWindowsGenuineTargets()) {
+        fs::path bak(t.path.wstring() + L".zaka-disabled");
+        if (!fs::exists(bak, ec)) continue;
+        if (fs::exists(t.path, ec)) fs::remove_all(t.path, ec);
+        fs::rename(bak, t.path, ec);
+        if (!ec) {
+            count++;
+            if (logFn) logFn("OK", "已恢复正版组件目录: " + t.name, false);
+        }
+    }
+    return count;
+}
+
+// ============================================================================
+// 20-Point Built-in Self-Test (13 Hosts + 5 Auto-Update + 1 Mihomo + 1 Safety)
 // ============================================================================
 
 static int RunSelfTestEngine(std::function<void(const std::string&, const std::string&, bool)> logFn) {
@@ -2552,7 +3195,7 @@ static int RunSelfTestEngine(std::function<void(const std::string&, const std::s
 
     std::string applied1 = ApplyHostsToString(orig, kBuiltInDomains);
     check(HostsHasBlock(applied1), "块已写入");
-    check(kBuiltInDomains.size() == 60, "域名条数 = 60");
+    check(kBuiltInDomains.size() == 120, "域名条数 = 120");
 
     bool mod2 = false;
     StripHostsBlock(applied1, &mod2);
@@ -2631,15 +3274,29 @@ static int RunSelfTestEngine(std::function<void(const std::string&, const std::s
         "C:\\Program Files\\Adobe\\msedgewebview2.exe"
     });
     bool mihomoOk = (mihomoYaml.find("DOMAIN-SUFFIX,adobegenuine.com") != std::string::npos) &&
+                    (mihomoYaml.find("DOMAIN-SUFFIX,adobestats.io") != std::string::npos) &&
                     (mihomoYaml.find("DOMAIN,activate.adobe.com") != std::string::npos) &&
                     (mihomoYaml.find("PROCESS-NAME,Photoshop.exe") != std::string::npos) &&
                     (mihomoYaml.find("PROCESS-NAME,node.exe") == std::string::npos) &&
                     (mihomoYaml.find("PROCESS-NAME,msedgewebview2.exe") == std::string::npos);
     check(mihomoOk, "Mihomo 防侧漏规则集生成与通用进程名过滤正常");
 
+    bool safetyOk = IsDangerousScanRootW(L"C:\\", false) &&
+                    IsDangerousScanRootW(L"C:\\Windows\\System32", false) &&
+                    IsDangerousScanRootW(L"C:\\Program Files", false) &&
+                    !IsDangerousScanRootW(L"D:\\Adobe\\Adobe Premiere Pro 2025", true) &&
+                    !IsSafeToBlockExecutableW(L"C:\\Windows\\System32\\svchost.exe") &&
+                    !IsSafeToBlockExecutableW(L"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe") &&
+                    !IsSafeToBlockExecutableW(L"D:\\Tools\\mihomo.exe") &&
+                    IsSafeToBlockExecutableW(L"D:\\Adobe\\Adobe Premiere Pro 2025\\Adobe Premiere Pro.exe") &&
+                    IsAllowedCloudAdobeDomain("0bj2epfqn1.adobestats.io") &&
+                    !IsAllowedCloudAdobeDomain("www.google.com") &&
+                    !IsAllowedCloudAdobeDomain("www.baidu.com");
+    check(safetyOk, "断网安全防护：系统目录/浏览器/代理软件/非 Adobe 域名均受保护");
+
     if (logFn) {
         logFn(fails == 0 ? "DONE" : "FAIL",
-              fails == 0 ? "SELFTEST_OK — 19 项内置逻辑自检全部通过！" : "SELFTEST_FAIL",
+              fails == 0 ? "SELFTEST_OK — 20 项内置逻辑自检全部通过！" : "SELFTEST_FAIL",
               fails == 0);
     }
     return fails;
@@ -2687,6 +3344,9 @@ static void ExecuteApplyWorkflow(
     }
     if (logFn) {
         logFn("OK", "防火墙拦截规则已建立：" + std::to_string(ruleCreated) + " 条" + (includeInbound ? "（出站 + 入站）" : "（出站拦截）"), false);
+        if (!IsFirewallActiveForCurrentProfile()) {
+            logFn("WARN", "检测到当前 Windows 防火墙处于关闭状态（或被第三方杀毒/安全软件接管），仅防火墙规则可能无法生效！已同时依赖 hosts + 正版组件锁定进行保护，建议开启 Windows 防火墙或在代理软件中启用 Mihomo 规则。", false);
+        }
     }
 
     if (progFn) progFn(70, "3/4 正在写入系统 hosts 屏蔽域名...");
@@ -2704,8 +3364,8 @@ static void ExecuteApplyWorkflow(
         }
     }
 
-    if (progFn) progFn(85, "4/4 正在停用后台正版校验服务与计划任务...");
-    if (logFn) logFn("STEP", "4/4 停用后台正版校验服务与计划任务", false);
+    if (progFn) progFn(85, "4/4 正在停用后台正版校验服务、弹窗组件与计划任务...");
+    if (logFn) logFn("STEP", "4/4 停用后台正版校验服务、AdobeGCClient 与计划任务", false);
 
     SavedState st;
     st.created = CurrentTimeIso();
@@ -2714,6 +3374,7 @@ static void ExecuteApplyWorkflow(
     if (skipServices) {
         if (logFn) logFn("INFO", "已按策略配置跳过服务与计划任务处理", false);
     } else {
+        KillAdobeGenuineProcessesWindows();
         auto svcs = FindAdobeServices();
         if (svcs.empty()) {
             if (logFn) logFn("INFO", "当前系统未发现 Adobe 后台服务", false);
@@ -2744,6 +3405,8 @@ static void ExecuteApplyWorkflow(
                 }
             }
         }
+
+        DisableWindowsGenuineComponents(logFn);
     }
 
     SaveAppState(st);
@@ -2798,6 +3461,8 @@ static void ExecuteRevertWorkflow(
         RunHiddenCommand(L"schtasks.exe /Change /TN \"" + Utf8ToWide(full) + L"\" /ENABLE");
         if (logFn) logFn("OK", "已恢复计划任务: " + full, false);
     }
+
+    RestoreWindowsGenuineComponents(logFn);
 
     if (progFn) progFn(95, "4/4 正在清理状态文件...");
     std::error_code ec;
@@ -3063,19 +3728,30 @@ static std::string BuildStatusJsonPayload() {
     }
 
     bool isAdmin = IsRunningAsAdmin();
+    static std::atomic<bool> s_sanitizedOnce{false};
+    if (isAdmin && !s_sanitizedOnce.exchange(true)) {
+        int healed = SanitizeCorruptFirewallRules();
+        if (healed > 0) {
+            SendLogToUI("DONE", "安全自检：发现并自动清除了 " + std::to_string(healed) + " 条异常防火墙规则，已恢复正常网络连接！", true);
+        }
+    }
     bool fwSvc = IsFirewallServiceRunning();
+    bool fwActiveProfile = IsFirewallActiveForCurrentProfile();
     int fwRules = CountFirewallRules();
     bool hostsOn = HostsHasBlock(ReadFileUtf8(GetSystemHostsPath()));
     bool hostsBackup = fs::exists(GetHostsBackupPath());
     auto domains = GetAdobeDomains();
+    size_t cloudCount = CountCloudDomainsCached();
     auto exes = FindAdobeExecutables(extraCopy);
     auto svcs = FindAdobeServices();
+    auto gcComps = FindWindowsGenuineComponents();
+    svcs.insert(svcs.end(), gcComps.begin(), gcComps.end());
     auto tasks = FindAdobeTasks();
 
     int svcTotal = (int)svcs.size();
     int svcDisabled = 0;
     for (const auto& s : svcs) {
-        if (ToLowerAscii(s.startMode) == "disabled") svcDisabled++;
+        if (ToLowerAscii(s.startMode) == "disabled" || ToLowerAscii(s.state) == "disabled") svcDisabled++;
     }
 
     int taskTotal = (int)tasks.size();
@@ -3102,10 +3778,12 @@ static std::string BuildStatusJsonPayload() {
         << "\"lastChecked\":\"" << JsonEscape(updCfg.lastChecked) << "\"},";
     oss << "\"isAdmin\":" << (isAdmin ? "true" : "false") << ",";
     oss << "\"fwServiceRunning\":" << (fwSvc ? "true" : "false") << ",";
+    oss << "\"fwActiveProfileEnabled\":" << (fwActiveProfile ? "true" : "false") << ",";
     oss << "\"fwRuleCount\":" << fwRules << ",";
     oss << "\"hostsEnabled\":" << (hostsOn ? "true" : "false") << ",";
     oss << "\"hostsBackup\":" << (hostsBackup ? "true" : "false") << ",";
     oss << "\"domainCount\":" << domains.size() << ",";
+    oss << "\"cloudDomainCount\":" << cloudCount << ",";
     oss << "\"svcTotal\":" << svcTotal << ",";
     oss << "\"svcDisabled\":" << svcDisabled << ",";
     oss << "\"taskTotal\":" << taskTotal << ",";
@@ -3196,16 +3874,21 @@ static void HandleFolderPicker() {
             if (SUCCEEDED(pDlg->GetResult(&pItem)) && pItem) {
                 PWSTR pszPath = nullptr;
                 if (SUCCEEDED(pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszPath)) && pszPath) {
-                    std::string chosen = WideToUtf8(pszPath);
+                    std::wstring chosenW = NormalizeWindowsPathW(pszPath);
                     CoTaskMemFree(pszPath);
-                    {
-                        std::lock_guard<std::mutex> lock(g_stateMutex);
-                        if (std::find(g_extraPaths.begin(), g_extraPaths.end(), chosen) == g_extraPaths.end()) {
-                            g_extraPaths.push_back(chosen);
+                    if (IsDangerousScanRootW(chosenW, false)) {
+                        SendLogToUI("WARN", "为防止误伤系统网络，已拒绝添加磁盘根目录或系统目录：" + WideToUtf8(chosenW) + "（请选择具体的 Adobe 安装文件夹）", false);
+                    } else {
+                        std::string chosen = WideToUtf8(chosenW);
+                        {
+                            std::lock_guard<std::mutex> lock(g_stateMutex);
+                            if (std::find(g_extraPaths.begin(), g_extraPaths.end(), chosen) == g_extraPaths.end()) {
+                                g_extraPaths.push_back(chosen);
+                            }
                         }
+                        SendLogToUI("INFO", "已添加自定义扫描目录: " + chosen, false);
+                        SpawnRefreshAsync(false);
                     }
-                    SendLogToUI("INFO", "已添加自定义扫描目录: " + chosen, false);
-                    SpawnRefreshAsync(false);
                 }
                 pItem->Release();
             }
@@ -3275,9 +3958,27 @@ static void HandleWebMessage(const std::string& jsonMsg) {
     } else if (cmd == "selftest") {
         if (g_workerBusy.exchange(true)) return;
         std::thread([]() {
-            SendLogToUI("STEP", "开始运行内置 19 项 Hosts、自动更新与 Mihomo 规则自检：", false);
+            SendLogToUI("STEP", "开始运行内置 20 项 Hosts、自动更新、Mihomo 与防断网安全自检：", false);
             int fails = RunSelfTestEngine(SendLogToUI);
-            SendProgressToUI(100, fails == 0 ? "内置自检全部通过 (19/19 PASS)" : "自检发现异常");
+            SendProgressToUI(100, fails == 0 ? "内置自检全部通过 (20/20 PASS)" : "自检发现异常");
+            PostJsonToUI(BuildStatusJsonPayload());
+            g_workerBusy = false;
+        }).detach();
+    } else if (cmd == "syncCloudDomains") {
+        if (g_workerBusy.exchange(true)) return;
+        std::thread([]() {
+            SendLogToUI("STEP", "正在同步最新云端防弹窗域名库 (a-dove-is-dumb，仅限 Adobe 域名白名单)...", false);
+            SendProgressToUI(40, "正在同步最新云端 Adobe 防弹窗域名库...");
+            size_t count = 0;
+            std::string src, err;
+            if (SyncCloudBlocklistSync(count, src, err)) {
+                SendProgressToUI(100, "云端防弹窗域名库同步完成");
+                SendLogToUI("DONE", "已从 " + src + " 同步 " + std::to_string(count) + " 个 Adobe 动态防弹窗域名（请点「重新应用拦截」写入 hosts）", true);
+                PostJsonToUI("{\"type\":\"cloudDomainsSynced\",\"count\":" + std::to_string(count) + "}");
+            } else {
+                SendProgressToUI(0, "同步失败");
+                SendLogToUI("WARN", "同步云端防弹窗域名库失败：" + err, false);
+            }
             PostJsonToUI(BuildStatusJsonPayload());
             g_workerBusy = false;
         }).detach();
@@ -3543,7 +4244,12 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
                     fs::path p(pathBuf);
                     if (fs::is_regular_file(p)) p = p.parent_path();
                     if (fs::is_directory(p)) {
-                        std::string utf8Dir = WideToUtf8(p.wstring());
+                        std::wstring normW = NormalizeWindowsPathW(p.wstring());
+                        if (IsDangerousScanRootW(normW, false)) {
+                            SendLogToUI("WARN", "已忽略磁盘根目录或系统目录：" + WideToUtf8(normW) + "（请拖入具体的 Adobe 文件夹）", false);
+                            continue;
+                        }
+                        std::string utf8Dir = WideToUtf8(normW);
                         std::lock_guard<std::mutex> lock(g_stateMutex);
                         if (std::find(g_extraPaths.begin(), g_extraPaths.end(), utf8Dir) == g_extraPaths.end()) {
                             g_extraPaths.push_back(utf8Dir);
@@ -3661,6 +4367,17 @@ static int RunCliAction(const std::string& action, const std::vector<std::string
         return 1;
     }
 
+    if (action == "sync-domains") {
+        size_t count = 0;
+        std::string src, err;
+        if (SyncCloudBlocklistSync(count, src, err)) {
+            cliLog("OK", "已从 " + src + " 同步 " + std::to_string(count) + " 个云端 Adobe 防弹窗域名", true);
+            return 0;
+        }
+        cliLog("FAIL", "同步云端域名库失败: " + err, false);
+        return 1;
+    }
+
     if (action == "check-update" || action == "update") {
         UpdateStateSnapshot snap;
         UpdateReleaseInfo rel;
@@ -3736,7 +4453,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow) {
             while (!lower.empty() && (lower[0] == '-' || lower[0] == '/')) lower.erase(0, 1);
 
             if (lower == "apply" || lower == "revert" || lower == "status" || lower == "selftest" ||
-                lower == "check-update" || lower == "update" || lower == "export-mihomo") {
+                lower == "check-update" || lower == "update" || lower == "export-mihomo" || lower == "sync-domains") {
                 cliAction = lower;
             } else if (lower == "gui-preview" && i + 1 < argc) {
                 g_previewBasePng = argv[++i];

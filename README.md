@@ -36,15 +36,15 @@
 
 工具只动下面三处，每次修改前都会记录原始状态，还原时不会碰你的其他配置：
 
-1. **防火墙与通配符 DNS 黑洞**
-   - Windows：自动扫描常见安装目录以及注册表里的 Adobe 卸载项，给每个 `.exe` 加出站阻止规则，统一归在 `Zaka Adobe Block` 组下（可选勾选同时加「含入站规则」）。
-   - macOS：启用系统应用防火墙拦截扫描到的 Adobe `.app`，并在 `/etc/resolver/` 下写入通配符黑洞配置，直接封堵 Adobe 2025/2026 动态轮换的 `*.adobestats.io`、`*.adobe.io`、`*.adobegenuine.com`、`*.licenses.adobe.com` 等所有子域名。
-2. **hosts 屏蔽**
-   - 在系统 hosts 末尾追加一段带起止标记的区块，屏蔽 60 个核心激活、Genuine 正版校验（含 `lcs-cops.adobe.io` / `lcs-ulecs.adobe.io` / `fp.adobestats.io`）、更新和遥测域名，并刷新 DNS 缓存。
-   - 第一次改动前会先备份原始 hosts。想自己补域名的话，在软件里的「域名」页或者直接编辑同目录的 `adobe-domains.txt`（一行一个，`#` 开头算注释），保存后重新应用就行。
+1. **防火墙拦截（严格防误伤机制）**
+   - Windows：自动扫描全部本地盘符（`C:`–`Z:`）、注册表卸载项与 `App Paths` 里的 Adobe 安装目录（涵盖 D 盘/E 盘 PR/PS/AE/AI 等非默认路径），给每个 Adobe `.exe` 建立出站+入站阻止规则，统一归在 `Zaka Adobe Block` 组下。内置严格路径与程序白名单保护，绝不拦截系统目录、浏览器或代理软件，并在写入前二次校验程序路径，杜绝全机断网。
+   - macOS：扫描 `/Applications` 及用户应用目录下的 Adobe `.app`，通过系统 `socketfilterfw` 加入拦截列表（不改动全局 DNS 或强制改变系统防火墙总开关，不影响正常上网）。
+2. **hosts 屏蔽 + 一键同步云端防弹窗库**
+   - 内置 120 个激活、PR/CC 许可、Genuine 正版校验与动态 `*.adobe.io` 弹窗域名，写入系统 hosts 末尾带起止标记的独立区块并备份原始 hosts。
+   - 在「域名」页支持一键点击 **同步云端防弹窗库**（拉取 `a-dove-is-dumb` 最新动态列表，并严格过滤只保留 Adobe 相关域名），应对 Adobe 高频轮换的 `*.adobestats.io` 弹窗节点。
 3. **后台校验服务、正版组件与开机守护**
-   - Windows：停止并禁用 `AGSService`、`AGMService`、`AdobeARMservice` 等后台服务，以及名称或路径含 Adobe 的计划任务。原来的启动方式会记在 `state.json` 里，还原时照原样改回去。
-   - macOS：卸载并禁用所有 Adobe LaunchAgents/LaunchDaemons，将 `AdobeGCClient`、`Adobe Desktop Common/AGS` 与缓存正版标记的 `/Users/Shared/AdobeGCData` 备份并加不可变锁（`uchg`），禁用特权修复助手，同时安装开机持久守护 LaunchDaemon，确保重启 Mac 后拦截不会失效；点击「还原全部改动」即可完整解锁并恢复原状。
+   - Windows：结束正在运行的正版/许可校验进程，停用 `AGSService`、`AGMService`、`AdobeARMservice` 等后台服务与计划任务，并可逆备份禁用 `AdobeGCClient` 与 `AdobeGCData` 缓存目录（不碰 `SLStore` 离线激活），还原时按原状恢复。
+   - macOS：卸载并禁用所有 Adobe LaunchAgents/LaunchDaemons，将 `AdobeGCClient`、`Adobe Desktop Common/AGS` 与 `/Users/Shared/AdobeGCData` 备份并加不可变锁（`uchg`），禁用特权修复助手，同时安装温和开机守护 LaunchDaemon；点击「还原全部改动」即可完整解锁并恢复原状。
 
 不想动 hosts 或服务的话，在首页对应卡片右上角把开关关掉即可。
 
@@ -96,10 +96,13 @@ rules:
 & '.\Adobe Tools.exe' check-update
 & '.\Adobe Tools.exe' update
 
+# 同步云端最新防弹窗域名库（a-dove-is-dumb，严格仅保留 Adobe 域名）
+& '.\Adobe Tools.exe' sync-domains
+
 # 导出 Mihomo 防侧漏规则集（含本机扫描到的 Adobe 进程名）
 & '.\Adobe Tools.exe' export-mihomo
 
-# 跑内置的 19 项逻辑自检（hosts 解析幂等性 + 自动更新 + Mihomo 规则）
+# 跑内置的 20 项逻辑与防误伤自检（hosts 幂等性 + 自动更新 + Mihomo + 防断网安全）
 & '.\Adobe Tools.exe' selftest
 ```
 

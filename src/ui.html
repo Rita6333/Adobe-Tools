@@ -1830,7 +1830,7 @@
       <span class="brand-name">Adobe Tools</span>
       <span class="brand-author">by RITA</span>
       <button id="btnVersionPill" class="brand-version" type="button" title="当前版本 · 点击检查更新" onclick="openUpdateModal()">
-        <span id="txtAppVersion">v2.2.1</span>
+        <span id="txtAppVersion">v2.2.2</span>
         <span id="dotVersionUpdate" class="update-dot"></span>
       </button>
     </div>
@@ -1840,7 +1840,7 @@
       <button id="seg-0" class="seg-btn active" type="button" onclick="switchTab(0)">总览</button>
       <button id="seg-1" class="seg-btn" type="button" onclick="switchTab(1)">程序 <span id="segCountExes" class="seg-pill-count">0</span></button>
       <button id="seg-2" class="seg-btn" type="button" onclick="switchTab(2)">服务 <span id="segCountSvcs" class="seg-pill-count">0</span></button>
-      <button id="seg-3" class="seg-btn" type="button" onclick="switchTab(3)">域名 <span id="segCountDoms" class="seg-pill-count">60</span></button>
+      <button id="seg-3" class="seg-btn" type="button" onclick="switchTab(3)">域名 <span id="segCountDoms" class="seg-pill-count">120</span></button>
     </nav>
 
     <div class="titlebar-right">
@@ -1938,7 +1938,7 @@
           <div class="layer-foot">
             <label class="inline-switch-label win-only">
               <span class="ios-switch" style="transform:scale(0.84); transform-origin:left center;">
-                <input type="checkbox" id="chkInbound">
+                <input type="checkbox" id="chkInbound" checked>
                 <span class="ios-slider"></span>
               </span>
               <span>含入站规则</span>
@@ -1962,10 +1962,10 @@
           <div class="layer-body">
             <div class="layer-name">Hosts 域名屏蔽</div>
             <div class="layer-metric">
-              <strong id="numHosts">60</strong>
+              <strong id="numHosts">120</strong>
               <span id="unitHosts">个校验域名</span>
             </div>
-            <p id="lblHostsDesc" class="layer-desc">将激活许可、Genuine 正版弹窗源、自动更新与遥测域名双栈指向 0.0.0.0。</p>
+            <p id="lblHostsDesc" class="layer-desc">内置 120 个激活与动态弹窗域名，支持一键同步云端防弹窗库，仅拦截 Adobe 域名。</p>
           </div>
           <div class="layer-foot">
             <span id="txtHostsState" style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">当前未写入</span>
@@ -2022,7 +2022,7 @@
         </div>
         <div class="footer-right">
           <button class="footer-action-link" type="button" onclick="openUpdateModal()">检查更新</button>
-          <button class="footer-action-link" type="button" onclick="triggerSelfTest()">19项自检</button>
+          <button class="footer-action-link" type="button" onclick="triggerSelfTest()">20项自检</button>
           <button class="footer-action-link" type="button" onclick="sendCmd('openStateDir')">状态目录</button>
           <button class="footer-action-link" type="button" onclick="toggleDrawer(true)">执行日志</button>
         </div>
@@ -2095,8 +2095,11 @@
       <div id="domainsHostsLayout" class="domains-layout">
         <div class="panel-card">
           <div class="panel-toolbar">
-            <span style="font-size:13px; font-weight:600;">内置屏蔽域名清单 (60 条)</span>
-            <span style="font-size:11.5px; color:var(--emerald); font-weight:600;">0.0.0.0 &amp; IPv6</span>
+            <span style="font-size:13px; font-weight:600;">内置屏蔽域名清单 (120 条)</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="txtCloudDomainsBadge" style="font-size:11.5px; color:var(--emerald); font-weight:600;">0.0.0.0 &amp; IPv6</span>
+              <button id="btnSyncCloudDomains" class="btn btn-ghost btn-sm" type="button" title="拉取 a-dove-is-dumb 最新动态防弹窗域名表（严格过滤仅限 Adobe 域名）" onclick="triggerSyncCloudDomains()">同步云端防弹窗库</button>
+            </div>
           </div>
           <div id="builtinDomainsBox" class="domain-list-scroll"></div>
         </div>
@@ -2153,7 +2156,7 @@
   </div>
   <div id="logContainer" class="drawer-body"></div>
   <div class="drawer-foot">
-    <button class="btn btn-ghost btn-sm" type="button" onclick="triggerSelfTest()">运行 19 项自检</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="triggerSelfTest()">运行 20 项自检</button>
     <div style="display:flex; gap:6px;">
       <button class="btn btn-ghost btn-sm" type="button" onclick="copyLogs()">复制</button>
       <button class="btn btn-ghost btn-sm" type="button" onclick="clearLogs()">清空</button>
@@ -2195,9 +2198,9 @@
       <div class="update-hero">
         <div class="update-hero-top">
           <div class="update-ver-flow">
-            <span id="updCurVer" class="update-ver-tag">v2.2.1</span>
+            <span id="updCurVer" class="update-ver-tag">v2.2.2</span>
             <span id="updArrow" style="color:var(--ink-muted); display:none;">→</span>
-            <span id="updNewVer" class="update-ver-tag new" style="display:none;">v2.2.1</span>
+            <span id="updNewVer" class="update-ver-tag new" style="display:none;">v2.2.2</span>
           </div>
           <span id="updStatusPill" class="layer-pill">等待检查</span>
         </div>
@@ -2259,7 +2262,7 @@
   let isProtectedNow = null;
   let activeTabIndex = 0;
 
-  let appVersion = "2.2.1";
+  let appVersion = "2.2.2";
   let appPlatform = "windows";
   let updateState = null;
   let updateConfig = { autoCheck: true, ignoredVersion: "", lastChecked: "" };
@@ -2543,7 +2546,7 @@
 
   const domainCategories = [
     {
-      title: "激活与许可证校验 (32)",
+      title: "激活、PR 许可与 OOBE 校验 (44)",
       items: [
         "activate.adobe.com", "practivate.adobe.com", "activate-sea.adobe.com", "activate-sjc0.adobe.com",
         "activate.wip3.adobe.com", "activate.wip4.adobe.com", "ereg.adobe.com", "ereg.wip3.adobe.com",
@@ -2553,16 +2556,37 @@
         "uds.licenses.adobe.com", "lm.licenses.adobe.com", "lmlicenses.wip4.adobe.com",
         "licenses.adobe.com", "na1r.services.adobe.com", "na1m-pr.licenses.adobe.com", "na2m-pr.licenses.adobe.com",
         "workflow.licenses.adobe.com", "workflow-stage.licenses.adobe.com", "oobe.adobe.com",
-        "ans.oobesaas.adobe.com", "hl2rcv.adobe.com"
+        "ans.oobesaas.adobe.com", "hl2rcv.adobe.com",
+        "adobeereg.com", "www.adobeereg.com", "prod.iss.adobe.com", "continuity.adobe.io",
+        "cc-collab-api.adobe.io", "creativesdk.adobe.com", "cdn-ffc.oobesaas.adobe.com",
+        "ffc-static-cdn.oobesaas.adobe.com", "k.oobesaas.adobe.com", "adobeid-na1.services.adobe.com",
+        "auth.services.adobe.com", "federatedid-na1.services.adobe.com"
       ]
     },
     {
-      title: "正版验证与现代弹窗源头 (11)",
+      title: "正版验证与现代弹窗核心 (11)",
       items: [
         "genuine.adobe.com", "prod.adobegenuine.com", "adobegenuine.com",
         "lcs-cops.adobe.io", "lcs-ulecs.adobe.io", "lcs-robs.adobe.io",
         "gcos.adobe.io", "hbc.adobe.io", "fp.adobestats.io",
         "crs.cr.adobe.com", "utut-service.adobe.com"
+      ]
+    },
+    {
+      title: "动态弹窗校验节点 *.adobe.io (48)",
+      items: [
+        "0mo5a70cqa.adobe.io", "1b9khekel6.adobe.io", "1hzopx6nz7.adobe.io", "22gda3bxkb.adobe.io",
+        "23ynjitwt5.adobe.io", "2ftem87osk.adobe.io", "3ca52znvmj.adobe.io", "3d3wqt96ht.adobe.io",
+        "4hvtkfouhu.adobe.io", "4vzokhpsbs.adobe.io", "5zgzzv92gn.adobe.io", "69tu0xswvq.adobe.io",
+        "7g2gzgk9g1.adobe.io", "7hewqka7ix.adobe.io", "7m31guub0q.adobe.io", "7sj9n87sls.adobe.io",
+        "8n1u6aggep.adobe.io", "8ncdzpmmrg.adobe.io", "9ngulmtgqi.adobe.io", "aoorovjtha.adobe.io",
+        "b5kbg2ggog.adobe.io", "bo3u7sbfvf.adobe.io", "cd536oo20y.adobe.io", "dxyeyf6ecy.adobe.io",
+        "dyzt55url8.adobe.io", "ej4o5b9gac.adobe.io", "fgh5v09kcn.adobe.io", "fqaq3pq1o9.adobe.io",
+        "guzg78logz.adobe.io", "gw8gfjbs05.adobe.io", "h9m2j0ykj7.adobe.io", "hu0em4wmio.adobe.io",
+        "i7pq6fgbsl.adobe.io", "ij0gdyrfka.adobe.io", "ivbnpthtl2.adobe.io", "jc95y2v12r.adobe.io",
+        "lre1kgz2u4.adobe.io", "m59b4msyph.adobe.io", "p0bjuoe16a.adobe.io", "p7uxzbht8h.adobe.io",
+        "ph0f2h2csf.adobe.io", "pojvrj7ho5.adobe.io", "q2ge7bxibl.adobe.io", "r3zj0yju1q.adobe.io",
+        "r5hacgq5w6.adobe.io", "vajcbj9qgq.adobe.io", "vcorzsld2a.adobe.io", "zh9yrmh2lu.adobe.io"
       ]
     },
     {
@@ -2604,9 +2628,9 @@
       const hostsDesc = document.getElementById("lblHostsDesc");
       const svcName = document.getElementById("lblSvcName");
       const svcDesc = document.getElementById("lblSvcDesc");
-      if (fwName) fwName.textContent = "防火墙与通配符 DNS";
-      if (fwDesc) fwDesc.textContent = "启用 macOS 应用防火墙与 /etc/resolver 通配符黑洞，拦截动态 *.adobestats.io 与 *.adobe.io 弹窗校验。";
-      if (hostsDesc) hostsDesc.textContent = "写入 60 个校验域名及 /etc/resolver 通配符黑洞，并自动备份原始 hosts。";
+      if (fwName) fwName.textContent = "应用防火墙拦截";
+      if (fwDesc) fwDesc.textContent = "将扫描到的 Adobe .app 加入 macOS 应用防火墙拦截列表，不改动全局 DNS 与代理网络。";
+      if (hostsDesc) hostsDesc.textContent = "内置 120 个激活与动态弹窗域名，支持一键同步云端防弹窗库，不影响正常上网。";
       if (svcName) svcName.textContent = "正版组件与开机守护";
       if (svcDesc) svcDesc.textContent = "锁定 AdobeGCClient / AGS / AdobeGCData 并停用 LaunchAgents，重启自动守护且支持一键还原。";
     }
@@ -2707,6 +2731,15 @@
   function triggerSelfTest() {
     toggleDrawer(true);
     sendCmd("selftest");
+  }
+
+  function triggerSyncCloudDomains() {
+    const btn = document.getElementById("btnSyncCloudDomains");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "同步中...";
+    }
+    sendCmd("syncCloudDomains");
   }
 
   function saveCustomDomains() {
@@ -3093,22 +3126,31 @@
       `本机扫描到 ${allExes.length} 个 Adobe 程序、${s.domainCount} 个屏蔽域名、${totalBg} 项后台服务与计划任务${lastStr}`;
 
     // Layer 1: Firewall
-    document.getElementById("iconBoxFw").className = "layer-icon-box " + (fwOn ? "emerald" : "");
-    document.getElementById("pillFw").className = "layer-pill " + (fwOn ? "on" : "");
-    document.getElementById("pillFw").textContent = fwOn ? `${s.fwRuleCount} 条生效` : "未建立";
+    const fwOffWarn = (s.platform === "windows" && s.fwActiveProfileEnabled === false);
+    document.getElementById("iconBoxFw").className = "layer-icon-box " + (fwOffWarn ? "amber" : (fwOn ? "emerald" : ""));
+    document.getElementById("pillFw").className = "layer-pill " + (fwOffWarn ? "warn" : (fwOn ? "on" : ""));
+    document.getElementById("pillFw").textContent = fwOffWarn
+      ? "系统防火墙未开启"
+      : (fwOn ? `${s.fwRuleCount} 条生效` : "未建立");
     animateCounter(document.getElementById("numFw"), fwOn ? s.fwRuleCount : allExes.length);
     document.getElementById("unitFw").textContent = fwOn ? "条拦截规则" : "个待拦截程序";
 
     // Layer 2: Hosts
     document.getElementById("iconBoxHosts").className = "layer-icon-box " + (hostsOn ? "emerald" : "");
     animateCounter(document.getElementById("numHosts"), s.domainCount);
-    if (s.platform === "macos" && s.resolverCount > 0) {
-      document.getElementById("txtHostsState").textContent = `已写入 · ${s.resolverCount} 组通配符黑洞`;
-    } else {
-      document.getElementById("txtHostsState").textContent = hostsOn
-        ? (s.hostsBackup ? "已写入 · 原文件已备份" : "已写入 hosts")
-        : "当前未写入";
+    const cloudCount = Number(s.cloudDomainCount) || 0;
+    const cloudBadge = document.getElementById("txtCloudDomainsBadge");
+    if (cloudBadge) {
+      cloudBadge.textContent = cloudCount > 0 ? `已含云端扩展 ${cloudCount} 条` : "0.0.0.0 & IPv6";
     }
+    const syncBtn = document.getElementById("btnSyncCloudDomains");
+    if (syncBtn) {
+      syncBtn.disabled = false;
+      syncBtn.textContent = cloudCount > 0 ? "更新云端库" : "同步云端防弹窗库";
+    }
+    document.getElementById("txtHostsState").textContent = hostsOn
+      ? (cloudCount > 0 ? `已写入 · 含云端 ${cloudCount} 条` : (s.hostsBackup ? "已写入 · 原文件已备份" : "已写入 hosts"))
+      : "当前未写入";
 
     const macGuardEl = document.getElementById("txtMacGuardState");
     if (macGuardEl && s.platform === "macos") {
@@ -3221,6 +3263,8 @@
       openUpdateModal();
     } else if (msg.type === "mihomoExported") {
       showToast("已导出 Mihomo 规则集至 " + (msg.path || "本地目录"));
+    } else if (msg.type === "cloudDomainsSynced") {
+      showToast(`已同步 ${msg.count || 0} 条云端防弹窗域名，点「重新应用拦截」生效`);
     }
   }
 
