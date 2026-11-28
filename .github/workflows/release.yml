@@ -83,16 +83,17 @@ jobs:
           cat SHA256SUMS.txt
           cd ..
           TAG="${{ inputs.tag != '' && inputs.tag || github.ref_name }}"
-          TAG_MSG="$(git for-each-ref --format='%(contents)' "refs/tags/$TAG" | sed '/^$/d')"
+          TAG_MSG="$(git tag -l --format='%(contents)' "$TAG")"
           PREV_TAG="$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)"
           {
             if [ -n "$TAG_MSG" ]; then
-              printf '%s\n\n' "$TAG_MSG"
-            fi
-            if [ -n "$PREV_TAG" ]; then
-              echo "### 提交记录"
+              printf '%s\n' "$TAG_MSG"
+            elif [ -n "$PREV_TAG" ]; then
+              echo "### 更新内容"
               git log --pretty=format:'- %s (%h)' "${PREV_TAG}..${TAG}"
               echo ""
+            fi
+            if [ -n "$PREV_TAG" ]; then
               echo ""
               echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
             fi
