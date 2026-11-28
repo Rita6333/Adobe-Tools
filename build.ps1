@@ -10,8 +10,9 @@ $CppPath = Join-Path $SrcDir 'main.cpp'
 $Wv2Lib  = Join-Path $SrcDir 'webview2\WebView2LoaderStatic.lib'
 $OutExe  = Join-Path $RootDir 'Adobe Tools.exe'
 
-# 1. Generate multi-resolution high-DPI app.ico (16, 32, 48, 256) if needed
+# 1. Generate multi-resolution high-DPI app.ico (16, 32, 48, 256) from docs/logo.png (with procedural fallback)
 Add-Type -AssemblyName System.Drawing
+$LogoPng = Join-Path $RootDir 'docs\logo.png'
 
 function New-IconBitmap([int]$Size) {
     $bmp = New-Object System.Drawing.Bitmap($Size, $Size, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
@@ -19,7 +20,19 @@ function New-IconBitmap([int]$Size) {
     $g.SmoothingMode     = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
     $g.PixelOffsetMode   = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+    $g.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
     $g.Clear([System.Drawing.Color]::Transparent)
+
+    if (Test-Path -LiteralPath $LogoPng) {
+        $src = [System.Drawing.Image]::FromFile($LogoPng)
+        try {
+            $g.DrawImage($src, 0, 0, $Size, $Size)
+        } finally {
+            $src.Dispose()
+        }
+        $g.Dispose()
+        return $bmp
+    }
 
     $pad = [float]($Size * 0.06)
     $w   = [float]($Size - $pad * 2)

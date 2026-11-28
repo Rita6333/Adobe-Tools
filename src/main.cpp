@@ -2249,7 +2249,255 @@ static void CleanupStaleOldBinary() {
 }
 
 // ============================================================================
-// 18-Point Built-in Self-Test (13 Hosts + 5 Auto-Update Engine)
+// Mihomo (Clash.Meta) Anti-Leak Rule-Set Generator & Exporter
+// ============================================================================
+
+static const std::vector<std::string> kMihomoDomainSuffixes = {
+    "adobegenuine.com",
+    "adobelogin.com",
+    "licenses.adobe.com",
+    "wip3.adobe.com",
+    "wip4.adobe.com"
+};
+
+static const std::vector<std::string> kMihomoDomainKeywords = {
+    "adobegenuine",
+    "adobe-dns",
+    "3dns",
+    "lmlicenses"
+};
+
+static const std::vector<std::string> kMihomoExtraDomains = {
+    "lcs-cops.adobe.io",
+    "lcs-ulecs.adobe.io",
+    "p13n.adobe.io",
+    "notify.adobe.io",
+    "geo2.adobe.com",
+    "hl2rcv.adobe.com",
+    "oobe.adobe.com",
+    "ims-prod06.adobelogin.com",
+    "ims-prod07.adobelogin.com"
+};
+
+static const std::vector<std::string> kMihomoDefaultProcessesWin = {
+    "AGSService.exe",
+    "AGMService.exe",
+    "AdobeGCClient.exe",
+    "Adobe Genuine Helper.exe",
+    "Adobe Desktop Service.exe",
+    "Creative Cloud.exe",
+    "Creative Cloud Helper.exe",
+    "AdobeIPCBroker.exe",
+    "CCXProcess.exe",
+    "CoreSync.exe",
+    "CCLibrary.exe",
+    "AdobeUpdateService.exe",
+    "AdobeARM.exe",
+    "armsvc.exe",
+    "AcroCEF.exe",
+    "RdrCEF.exe",
+    "Photoshop.exe",
+    "Illustrator.exe",
+    "AfterFX.exe",
+    "Adobe Premiere Pro.exe",
+    "Acrobat.exe",
+    "InDesign.exe",
+    "Lightroom.exe",
+    "LightroomClassic.exe",
+    "Audition.exe",
+    "Adobe Media Encoder.exe",
+    "Animate.exe",
+    "Bridge.exe"
+};
+
+static const std::vector<std::string> kMihomoDefaultProcessesMac = {
+    "AdobeGCClient",
+    "AGSService",
+    "AGMService",
+    "Adobe Desktop Service",
+    "Creative Cloud",
+    "AdobeIPCBroker",
+    "CCXProcess",
+    "CoreSync",
+    "AdobeCRDaemon"
+};
+
+static std::vector<std::string> MergeMihomoDomains(const std::vector<std::string>& domains, bool includeExtra) {
+    std::set<std::string> uniq;
+    for (const auto& d : domains) {
+        std::string t = ToLowerAscii(Trim(d));
+        if (!t.empty()) uniq.insert(t);
+    }
+    if (includeExtra) {
+        for (const auto& d : kMihomoExtraDomains) {
+            uniq.insert(ToLowerAscii(Trim(d)));
+        }
+    }
+    for (const auto& s : kMihomoDomainSuffixes) {
+        uniq.insert(ToLowerAscii(Trim(s)));
+    }
+    return std::vector<std::string>(uniq.begin(), uniq.end());
+}
+
+static bool IsSafeMihomoProcessName(const std::string& fname) {
+    std::string low = ToLowerAscii(Trim(fname));
+    if (low.empty()) return false;
+    static const char* kBlockedGeneric[] = {
+        "node.exe", "msedgewebview2.exe", "setup.exe", "set-up.exe",
+        "uninstall.exe", "uninstaller.exe", "convert.exe", "pngquant.exe",
+        "notification_helper.exe", "sniffer.exe", "droplet template.exe",
+        "python.exe", "ffmpeg.exe", "7z.exe", "curl.exe"
+    };
+    for (const char* b : kBlockedGeneric) {
+        if (low == b) return false;
+    }
+    if (low.rfind("vcredist", 0) == 0) return false;
+
+    static const char* kAdobeTokens[] = {
+        "adobe", "acro", "rdrcef", "armsvc", "agsservice", "agmservice",
+        "photoshop", "illustrator", "afterfx", "premiere", "indesign",
+        "lightroom", "audition", "animate", "bridge", "dreamweaver",
+        "creative", "coresync", "ccx", "cclibrary", "cephtml",
+        "dynamiclink", "flitetranscoder", "importerred", "tokenresolver",
+        "hdcore", "hdhelper", "adscustom", "crlog", "crwindows",
+        "amecommand", "logtransport", "logcollector"
+    };
+    for (const char* tok : kAdobeTokens) {
+        if (low.find(tok) != std::string::npos) return true;
+    }
+    return false;
+}
+
+static std::vector<std::string> MergeMihomoProcessNames(const std::vector<std::string>& exePaths, bool includeMac) {
+    std::vector<std::string> out;
+    std::set<std::string> seenLower;
+    auto pushUnique = [&](const std::string& name) {
+        std::string t = Trim(name);
+        if (t.empty()) return;
+        std::string low = ToLowerAscii(t);
+        if (seenLower.insert(low).second) {
+            out.push_back(t);
+        }
+    };
+    for (const auto& p : kMihomoDefaultProcessesWin) pushUnique(p);
+    for (const auto& ep : exePaths) {
+        std::string fname = WideToUtf8(fs::path(Utf8ToWide(ep)).filename().wstring());
+        if (IsSafeMihomoProcessName(fname)) pushUnique(fname);
+    }
+    if (includeMac) {
+        for (const auto& p : kMihomoDefaultProcessesMac) pushUnique(p);
+    }
+    return out;
+}
+
+static std::string BuildMihomoClassicalYaml(const std::vector<std::string>& domains, const std::vector<std::string>& exePaths) {
+    auto mergedDomains = MergeMihomoDomains(domains, true);
+    auto winProcs = MergeMihomoProcessNames(exePaths, false);
+
+    std::ostringstream oss;
+    oss << "# Adobe Tools - Mihomo / Clash.Meta 防侧漏规则集 (behavior: classical)\r\n"
+        << "# 仓库地址: https://github.com/Rita6333/Adobe-Tools\r\n"
+        << "# 订阅链接: https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-block.yaml\r\n"
+        << "# 建议动作: REJECT 或 REJECT-DROP（配合 dns.use-system-hosts: true 防止 TUN / Fake-IP / 系统代理侧漏）\r\n\r\n"
+        << "payload:\r\n"
+        << "  # ==================== 通配符域名后缀 ====================\r\n";
+    for (const auto& s : kMihomoDomainSuffixes) {
+        oss << "  - 'DOMAIN-SUFFIX," << s << "'\r\n";
+    }
+    oss << "\r\n  # ==================== 高危关键词匹配 ====================\r\n";
+    for (const auto& kw : kMihomoDomainKeywords) {
+        oss << "  - 'DOMAIN-KEYWORD," << kw << "'\r\n";
+    }
+    oss << "\r\n  # ==================== 激活、正版校验与遥测域名 ====================\r\n";
+    for (const auto& d : mergedDomains) {
+        oss << "  - 'DOMAIN," << d << "'\r\n";
+    }
+    oss << "\r\n  # ==================== 进程级防侧漏 (Windows) ====================\r\n";
+    for (const auto& proc : winProcs) {
+        oss << "  - 'PROCESS-NAME," << proc << "'\r\n";
+    }
+    oss << "\r\n  # ==================== 进程级防侧漏 (macOS) ====================\r\n";
+    for (const auto& proc : kMihomoDefaultProcessesMac) {
+        oss << "  - 'PROCESS-NAME," << proc << "'\r\n";
+    }
+    return oss.str();
+}
+
+static std::string BuildMihomoDomainYaml(const std::vector<std::string>& domains) {
+    auto mergedDomains = MergeMihomoDomains(domains, true);
+    std::ostringstream oss;
+    oss << "# Adobe Tools - Mihomo / Clash.Meta 域名规则集 (behavior: domain)\r\n"
+        << "# 可用于 rule-providers (behavior: domain) 或 dns.fake-ip-filter\r\n"
+        << "# 订阅链接: https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-domain.yaml\r\n\r\n"
+        << "payload:\r\n";
+    for (const auto& d : mergedDomains) {
+        oss << "  - '+." << d << "'\r\n";
+    }
+    return oss.str();
+}
+
+static std::string BuildMihomoClassicalList(const std::vector<std::string>& domains, const std::vector<std::string>& exePaths) {
+    auto mergedDomains = MergeMihomoDomains(domains, true);
+    auto winProcs = MergeMihomoProcessNames(exePaths, false);
+
+    std::ostringstream oss;
+    oss << "# Adobe Tools - 通用防侧漏规则列表 (behavior: classical, format: text)\r\n"
+        << "# 适用: Mihomo (format: text) / Clash / Surge / Quantumult X\r\n"
+        << "# 订阅链接: https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-block.list\r\n\r\n"
+        << "# 通配符域名后缀\r\n";
+    for (const auto& s : kMihomoDomainSuffixes) {
+        oss << "DOMAIN-SUFFIX," << s << "\r\n";
+    }
+    oss << "\r\n# 高危关键词匹配\r\n";
+    for (const auto& kw : kMihomoDomainKeywords) {
+        oss << "DOMAIN-KEYWORD," << kw << "\r\n";
+    }
+    oss << "\r\n# 激活、正版校验与遥测域名\r\n";
+    for (const auto& d : mergedDomains) {
+        oss << "DOMAIN," << d << "\r\n";
+    }
+    oss << "\r\n# 进程级防侧漏 (Windows)\r\n";
+    for (const auto& proc : winProcs) {
+        oss << "PROCESS-NAME," << proc << "\r\n";
+    }
+    oss << "\r\n# 进程级防侧漏 (macOS)\r\n";
+    for (const auto& proc : kMihomoDefaultProcessesMac) {
+        oss << "PROCESS-NAME," << proc << "\r\n";
+    }
+    return oss.str();
+}
+
+static bool ExportMihomoRulesToDisk(const std::vector<std::string>& extraPaths, fs::path& outDir, std::string& errOut) {
+    auto domains = GetAdobeDomains();
+    auto exes = FindAdobeExecutables(extraPaths);
+    std::string yamlClassical = BuildMihomoClassicalYaml(domains, exes);
+    std::string yamlDomain = BuildMihomoDomainYaml(domains);
+    std::string listClassical = BuildMihomoClassicalList(domains, exes);
+
+    std::vector<fs::path> candidates = {
+        GetAppDir() / L"rules\\mihomo",
+        GetStateDir() / L"mihomo",
+        GetLocalFallbackDir() / L"mihomo"
+    };
+
+    for (const auto& dir : candidates) {
+        std::error_code ec;
+        fs::create_directories(dir, ec);
+        if (ec) continue;
+        if (WriteFileUtf8(dir / L"adobe-block.yaml", yamlClassical) &&
+            WriteFileUtf8(dir / L"adobe-domain.yaml", yamlDomain) &&
+            WriteFileUtf8(dir / L"adobe-block.list", listClassical)) {
+            outDir = dir;
+            return true;
+        }
+    }
+
+    errOut = "无法创建或写入 Mihomo 规则导出目录";
+    return false;
+}
+
+// ============================================================================
+// 19-Point Built-in Self-Test (13 Hosts + 5 Auto-Update + 1 Mihomo Rule-Set)
 // ============================================================================
 
 static int RunSelfTestEngine(std::function<void(const std::string&, const std::string&, bool)> logFn) {
@@ -2344,9 +2592,21 @@ static int RunSelfTestEngine(std::function<void(const std::string&, const std::s
                   abcHash == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
     check(hashOk, "Windows CNG BCrypt SHA-256 哈希计算准确");
 
+    std::string mihomoYaml = BuildMihomoClassicalYaml({"activate.adobe.com"}, {
+        "C:\\Program Files\\Adobe\\Photoshop.exe",
+        "C:\\Program Files\\Adobe\\node.exe",
+        "C:\\Program Files\\Adobe\\msedgewebview2.exe"
+    });
+    bool mihomoOk = (mihomoYaml.find("DOMAIN-SUFFIX,adobegenuine.com") != std::string::npos) &&
+                    (mihomoYaml.find("DOMAIN,activate.adobe.com") != std::string::npos) &&
+                    (mihomoYaml.find("PROCESS-NAME,Photoshop.exe") != std::string::npos) &&
+                    (mihomoYaml.find("PROCESS-NAME,node.exe") == std::string::npos) &&
+                    (mihomoYaml.find("PROCESS-NAME,msedgewebview2.exe") == std::string::npos);
+    check(mihomoOk, "Mihomo 防侧漏规则集生成与通用进程名过滤正常");
+
     if (logFn) {
         logFn(fails == 0 ? "DONE" : "FAIL",
-              fails == 0 ? "SELFTEST_OK — 18 项内置逻辑自检全部通过！" : "SELFTEST_FAIL",
+              fails == 0 ? "SELFTEST_OK — 19 项内置逻辑自检全部通过！" : "SELFTEST_FAIL",
               fails == 0);
     }
     return fails;
@@ -2982,11 +3242,30 @@ static void HandleWebMessage(const std::string& jsonMsg) {
     } else if (cmd == "selftest") {
         if (g_workerBusy.exchange(true)) return;
         std::thread([]() {
-            SendLogToUI("STEP", "开始运行内置 18 项 Hosts 与自动更新引擎自检：", false);
+            SendLogToUI("STEP", "开始运行内置 19 项 Hosts、自动更新与 Mihomo 规则自检：", false);
             int fails = RunSelfTestEngine(SendLogToUI);
-            SendProgressToUI(100, fails == 0 ? "内置自检全部通过 (18/18 PASS)" : "自检发现异常");
+            SendProgressToUI(100, fails == 0 ? "内置自检全部通过 (19/19 PASS)" : "自检发现异常");
             PostJsonToUI(BuildStatusJsonPayload());
             g_workerBusy = false;
+        }).detach();
+    } else if (cmd == "exportMihomoRules") {
+        std::vector<std::string> extraCopy;
+        {
+            std::lock_guard<std::mutex> lock(g_stateMutex);
+            extraCopy = g_extraPaths;
+        }
+        std::thread([extraCopy]() {
+            fs::path outDir;
+            std::string err;
+            if (ExportMihomoRulesToDisk(extraCopy, outDir, err)) {
+                std::string dirUtf8 = WideToUtf8(outDir.wstring());
+                SendLogToUI("OK", "已导出 Mihomo 防侧漏规则集至: " + dirUtf8, false);
+                PostJsonToUI("{\"type\":\"mihomoExported\",\"path\":\"" + JsonEscape(dirUtf8) + "\"}");
+                std::wstring arg = L"/select,\"" + (outDir / L"adobe-block.yaml").wstring() + L"\"";
+                ShellExecuteW(g_hWnd, L"open", L"explorer.exe", arg.c_str(), nullptr, SW_SHOWNORMAL);
+            } else {
+                SendLogToUI("WARN", "导出 Mihomo 规则集失败：" + err, false);
+            }
         }).detach();
     } else if (cmd == "checkUpdate") {
         bool silent = JsonGetBool(jsonMsg, "silent", false);
@@ -3338,6 +3617,17 @@ static int RunCliAction(const std::string& action, const std::vector<std::string
         return 0;
     }
 
+    if (action == "export-mihomo") {
+        fs::path outDir;
+        std::string err;
+        if (ExportMihomoRulesToDisk(extraPaths, outDir, err)) {
+            cliLog("OK", "已导出 Mihomo 防侧漏规则集至: " + WideToUtf8(outDir.wstring()), true);
+            return 0;
+        }
+        cliLog("FAIL", "导出 Mihomo 规则集失败: " + err, false);
+        return 1;
+    }
+
     if (action == "check-update" || action == "update") {
         UpdateStateSnapshot snap;
         UpdateReleaseInfo rel;
@@ -3413,7 +3703,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int nCmdShow) {
             while (!lower.empty() && (lower[0] == '-' || lower[0] == '/')) lower.erase(0, 1);
 
             if (lower == "apply" || lower == "revert" || lower == "status" || lower == "selftest" ||
-                lower == "check-update" || lower == "update") {
+                lower == "check-update" || lower == "update" || lower == "export-mihomo") {
                 cliAction = lower;
             } else if (lower == "gui-preview" && i + 1 < argc) {
                 g_previewBasePng = argv[++i];

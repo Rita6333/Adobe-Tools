@@ -152,6 +152,10 @@
   .search-input-wrap,
   .domain-chip,
   .domain-textarea,
+  .sub-mode-bar,
+  .sub-mode-btn,
+  .mihomo-info-strip,
+  .mihomo-fmt-btn,
   .drawer-panel,
   .update-banner,
   .update-modal,
@@ -1288,6 +1292,97 @@
     background: var(--surface);
   }
 
+  /* Domains Sub-Mode Switcher & Mihomo Anti-Leak Studio */
+  .sub-mode-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 10px;
+    border-radius: 13px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+    flex-shrink: 0;
+  }
+
+  .sub-mode-pills {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--seg-track);
+    border: 1px solid var(--border);
+  }
+
+  .sub-mode-btn {
+    height: 28px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--ink-secondary);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .sub-mode-btn:hover { color: var(--ink); }
+  .sub-mode-btn.active {
+    background: var(--seg-active-bg);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: var(--shadow-pill);
+  }
+
+  .mihomo-fmt-pills {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .mihomo-fmt-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-subtle);
+    color: var(--ink-secondary);
+    font-family: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  }
+  .mihomo-fmt-btn:hover {
+    color: var(--ink);
+    border-color: var(--border-strong);
+  }
+  .mihomo-fmt-btn.active {
+    background: var(--emerald-soft);
+    border-color: var(--emerald-ring);
+    color: var(--emerald);
+  }
+
+  .mihomo-info-strip {
+    padding: 8px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-subtle);
+    font-size: 11.8px;
+    color: var(--ink-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
   /* ==================== SLIDE-OVER LOG & DIAGNOSTICS DRAWER ==================== */
   .drawer-backdrop {
     position: fixed;
@@ -1843,8 +1938,11 @@
             <p class="layer-desc">将激活许可、Genuine 正版弹窗源、自动更新与遥测域名双栈指向 0.0.0.0。</p>
           </div>
           <div class="layer-foot">
-            <span id="txtHostsState">当前未写入</span>
-            <button class="layer-link" type="button" onclick="switchTab(3)">编辑域名 ›</button>
+            <span id="txtHostsState" style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">当前未写入</span>
+            <div style="display:flex; align-items:center; gap:9px; flex-shrink:0;">
+              <button class="layer-link" type="button" onclick="openMihomoRulesTab()" title="导出或订阅 Mihomo / Clash 防侧漏规则集">防侧漏 ›</button>
+              <button class="layer-link" type="button" onclick="switchDomainsMode('hosts'); switchTab(3);">编辑域名 ›</button>
+            </div>
           </div>
         </article>
 
@@ -1894,7 +1992,7 @@
         </div>
         <div class="footer-right">
           <button class="footer-action-link" type="button" onclick="openUpdateModal()">检查更新</button>
-          <button class="footer-action-link" type="button" onclick="triggerSelfTest()">18项自检</button>
+          <button class="footer-action-link" type="button" onclick="triggerSelfTest()">19项自检</button>
           <button class="footer-action-link" type="button" onclick="sendCmd('openStateDir')">状态目录</button>
           <button class="footer-action-link" type="button" onclick="toggleDrawer(true)">执行日志</button>
         </div>
@@ -1954,9 +2052,17 @@
       </div>
     </section>
 
-    <!-- ======== TAB 3: DOMAINS ======== -->
+    <!-- ======== TAB 3: DOMAINS & MIHOMO ANTI-LEAK ======== -->
     <section id="view-3" class="view">
-      <div class="domains-layout">
+      <div class="sub-mode-bar">
+        <div class="sub-mode-pills">
+          <button id="domModeHosts" class="sub-mode-btn active" type="button" onclick="switchDomainsMode('hosts')">Hosts 域名屏蔽</button>
+          <button id="domModeMihomo" class="sub-mode-btn" type="button" onclick="switchDomainsMode('mihomo')">Mihomo / Clash 防侧漏规则集</button>
+        </div>
+        <span id="txtMihomoMetaBadge" style="font-size:11.5px; color:var(--ink-muted); font-family:var(--font-mono);">TUN / 系统代理防侧漏 · 含本机扫描进程</span>
+      </div>
+
+      <div id="domainsHostsLayout" class="domains-layout">
         <div class="panel-card">
           <div class="panel-toolbar">
             <span style="font-size:13px; font-weight:600;">内置屏蔽域名清单 (41 条)</span>
@@ -1974,8 +2080,31 @@
             </div>
           </div>
           <div class="domain-editor-body">
-            <textarea id="txtCustomDomains" class="domain-textarea" spellcheck="false" placeholder="# 一行一个域名，# 开头为注释"></textarea>
+            <textarea id="txtCustomDomains" class="domain-textarea" spellcheck="false" placeholder="# 一行一个域名，# 开头为注释" oninput="renderMihomoPreview()"></textarea>
           </div>
+        </div>
+      </div>
+
+      <div id="mihomoWorkspace" class="panel-card" style="display:none;">
+        <div class="panel-toolbar">
+          <div class="mihomo-fmt-pills">
+            <button id="fmt-classical-yaml" class="mihomo-fmt-btn active" type="button" onclick="selectMihomoFormat('classical-yaml')">Classical 规则集 (adobe-block.yaml)</button>
+            <button id="fmt-domain-yaml" class="mihomo-fmt-btn" type="button" onclick="selectMihomoFormat('domain-yaml')">Domain 域名集 (adobe-domain.yaml)</button>
+            <button id="fmt-classical-list" class="mihomo-fmt-btn" type="button" onclick="selectMihomoFormat('classical-list')">通用列表 (adobe-block.list)</button>
+            <button id="fmt-config-yaml" class="mihomo-fmt-btn" type="button" onclick="selectMihomoFormat('config-yaml')">Mihomo 配置示例</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="copyMihomoSubscribeUrl()">复制订阅链接</button>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="copyMihomoContent()">复制当前内容</button>
+            <button class="btn btn-hero btn-sm" type="button" onclick="exportMihomoRules()">导出规则文件</button>
+          </div>
+        </div>
+        <div class="mihomo-info-strip">
+          <span>代理开启 TUN / Fake-IP / 系统代理后可能绕过系统 hosts 与防火墙导致侧漏；配合 <code style="font-family:var(--font-mono);">RULE-SET + PROCESS-NAME + use-system-hosts: true</code> 可在代理内核拦截。</span>
+          <span id="txtMihomoSummary" class="layer-pill on" style="flex-shrink:0;">就绪</span>
+        </div>
+        <div class="domain-editor-body">
+          <textarea id="txtMihomoPreview" class="domain-textarea" readonly spellcheck="false"></textarea>
         </div>
       </div>
     </section>
@@ -1994,7 +2123,7 @@
   </div>
   <div id="logContainer" class="drawer-body"></div>
   <div class="drawer-foot">
-    <button class="btn btn-ghost btn-sm" type="button" onclick="triggerSelfTest()">运行 18 项自检</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="triggerSelfTest()">运行 19 项自检</button>
     <div style="display:flex; gap:6px;">
       <button class="btn btn-ghost btn-sm" type="button" onclick="copyLogs()">复制</button>
       <button class="btn btn-ghost btn-sm" type="button" onclick="clearLogs()">清空</button>
@@ -2549,6 +2678,253 @@
     navigator.clipboard.writeText(lines).then(() => showToast("日志已复制到剪贴板"));
   }
 
+  const mihomoDomainSuffixes = [
+    "adobegenuine.com", "adobelogin.com", "licenses.adobe.com", "wip3.adobe.com", "wip4.adobe.com"
+  ];
+  const mihomoDomainKeywords = [
+    "adobegenuine", "adobe-dns", "3dns", "lmlicenses"
+  ];
+  const mihomoExtraDomains = [
+    "lcs-cops.adobe.io", "lcs-ulecs.adobe.io", "p13n.adobe.io", "notify.adobe.io",
+    "geo2.adobe.com", "hl2rcv.adobe.com", "oobe.adobe.com",
+    "ims-prod06.adobelogin.com", "ims-prod07.adobelogin.com"
+  ];
+  const mihomoDefaultProcsWin = [
+    "AGSService.exe", "AGMService.exe", "AdobeGCClient.exe", "Adobe Genuine Helper.exe",
+    "Adobe Desktop Service.exe", "Creative Cloud.exe", "Creative Cloud Helper.exe",
+    "AdobeIPCBroker.exe", "CCXProcess.exe", "CoreSync.exe", "CCLibrary.exe",
+    "AdobeUpdateService.exe", "AdobeARM.exe", "armsvc.exe", "AcroCEF.exe", "RdrCEF.exe",
+    "Photoshop.exe", "Illustrator.exe", "AfterFX.exe", "Adobe Premiere Pro.exe",
+    "Acrobat.exe", "InDesign.exe", "Lightroom.exe", "LightroomClassic.exe",
+    "Audition.exe", "Adobe Media Encoder.exe", "Animate.exe", "Bridge.exe"
+  ];
+  const mihomoDefaultProcsMac = [
+    "AdobeGCClient", "AGSService", "AGMService", "Adobe Desktop Service",
+    "Creative Cloud", "AdobeIPCBroker", "CCXProcess", "CoreSync", "AdobeCRDaemon"
+  ];
+
+  let activeDomainsMode = "hosts";
+  let activeMihomoFormat = "classical-yaml";
+
+  function switchDomainsMode(mode) {
+    activeDomainsMode = mode === "mihomo" ? "mihomo" : "hosts";
+    const isMihomo = activeDomainsMode === "mihomo";
+    document.getElementById("domModeHosts").classList.toggle("active", !isMihomo);
+    document.getElementById("domModeMihomo").classList.toggle("active", isMihomo);
+    document.getElementById("domainsHostsLayout").style.display = isMihomo ? "none" : "grid";
+    document.getElementById("mihomoWorkspace").style.display = isMihomo ? "flex" : "none";
+    if (isMihomo) renderMihomoPreview();
+  }
+
+  function openMihomoRulesTab() {
+    switchTab(3);
+    switchDomainsMode("mihomo");
+  }
+
+  function selectMihomoFormat(fmt) {
+    activeMihomoFormat = fmt;
+    ["classical-yaml", "domain-yaml", "classical-list", "config-yaml"].forEach(k => {
+      const btn = document.getElementById("fmt-" + k);
+      if (btn) btn.classList.toggle("active", k === fmt);
+    });
+    renderMihomoPreview();
+  }
+
+  function parseCustomDomainsList() {
+    const el = document.getElementById("txtCustomDomains");
+    if (!el) return [];
+    const out = [];
+    String(el.value || "").split(/\r?\n/).forEach(line => {
+      const t = line.trim();
+      if (!t || t.startsWith("#")) return;
+      const parts = t.split(/\s+/);
+      const last = (parts[parts.length - 1] || "").trim().toLowerCase();
+      if (last && !last.startsWith("#")) out.push(last);
+    });
+    return out;
+  }
+
+  const mihomoBlockedGenericProcs = new Set([
+    "node.exe", "msedgewebview2.exe", "setup.exe", "set-up.exe",
+    "uninstall.exe", "uninstaller.exe", "convert.exe", "pngquant.exe",
+    "notification_helper.exe", "sniffer.exe", "droplet template.exe",
+    "python.exe", "ffmpeg.exe", "7z.exe", "curl.exe"
+  ]);
+  const mihomoAdobeProcTokens = [
+    "adobe", "acro", "rdrcef", "armsvc", "agsservice", "agmservice",
+    "photoshop", "illustrator", "afterfx", "premiere", "indesign",
+    "lightroom", "audition", "animate", "bridge", "dreamweaver",
+    "creative", "coresync", "ccx", "cclibrary", "cephtml",
+    "dynamiclink", "flitetranscoder", "importerred", "tokenresolver",
+    "hdcore", "hdhelper", "adscustom", "crlog", "crwindows",
+    "amecommand", "logtransport", "logcollector"
+  ];
+
+  function isSafeMihomoProcName(name) {
+    const low = String(name || "").trim().toLowerCase();
+    if (!low || mihomoBlockedGenericProcs.has(low) || low.startsWith("vcredist")) return false;
+    return mihomoAdobeProcTokens.some(tok => low.includes(tok));
+  }
+
+  function getMergedMihomoData() {
+    const domSet = new Set();
+    domainCategories.forEach(cat => cat.items.forEach(d => domSet.add(d.toLowerCase())));
+    mihomoExtraDomains.forEach(d => domSet.add(d.toLowerCase()));
+    mihomoDomainSuffixes.forEach(d => domSet.add(d.toLowerCase()));
+    parseCustomDomainsList().forEach(d => domSet.add(d));
+    const domains = Array.from(domSet).sort();
+
+    const seenProc = new Set();
+    const winProcs = [];
+    const pushWin = name => {
+      const t = String(name || "").trim();
+      if (!t) return;
+      const low = t.toLowerCase();
+      if (!seenProc.has(low)) {
+        seenProc.add(low);
+        winProcs.push(t);
+      }
+    };
+    mihomoDefaultProcsWin.forEach(pushWin);
+    (allExes || []).forEach(item => {
+      if (item && item.name && !String(item.name).toLowerCase().endsWith(".app") && isSafeMihomoProcName(item.name)) {
+        pushWin(item.name);
+      }
+    });
+
+    const macProcs = [...mihomoDefaultProcsMac];
+    (allExes || []).forEach(item => {
+      if (item && item.name && String(item.name).toLowerCase().endsWith(".app")) {
+        const stem = item.name.slice(0, -4);
+        if (isSafeMihomoProcName(stem) && !seenProc.has(stem.toLowerCase()) && !macProcs.some(m => m.toLowerCase() === stem.toLowerCase())) {
+          macProcs.push(stem);
+        }
+      }
+    });
+
+    return { domains, winProcs, macProcs };
+  }
+
+  function generateMihomoText(fmt) {
+    const { domains, winProcs, macProcs } = getMergedMihomoData();
+    if (fmt === "domain-yaml") {
+      return [
+        "# Adobe Tools - Mihomo / Clash.Meta 域名规则集 (behavior: domain)",
+        "# 可用于 rule-providers (behavior: domain) 或 dns.fake-ip-filter",
+        "# 订阅链接: https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-domain.yaml",
+        "",
+        "payload:",
+        ...domains.map(d => `  - '+.${d}'`)
+      ].join("\n");
+    }
+    if (fmt === "classical-list") {
+      return [
+        "# Adobe Tools - 通用防侧漏规则列表 (behavior: classical, format: text)",
+        "# 适用: Mihomo (format: text) / Clash / Surge / Quantumult X",
+        "# 订阅链接: https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-block.list",
+        "",
+        "# 通配符域名后缀",
+        ...mihomoDomainSuffixes.map(s => `DOMAIN-SUFFIX,${s}`),
+        "",
+        "# 高危关键词匹配",
+        ...mihomoDomainKeywords.map(k => `DOMAIN-KEYWORD,${k}`),
+        "",
+        "# 激活、正版校验与遥测域名",
+        ...domains.map(d => `DOMAIN,${d}`),
+        "",
+        "# 进程级防侧漏 (Windows)",
+        ...winProcs.map(p => `PROCESS-NAME,${p}`),
+        "",
+        "# 进程级防侧漏 (macOS)",
+        ...macProcs.map(p => `PROCESS-NAME,${p}`)
+      ].join("\n");
+    }
+    if (fmt === "config-yaml") {
+      return [
+        "# 将下面片段合并进你的 Mihomo (Clash.Meta / Clash Verge Rev / Mihomo Party) 配置文件",
+        "# 订阅地址直接指向本仓库 rules/mihomo/adobe-block.yaml，如已启用本地自定义规则也可改为 type: file",
+        "",
+        "dns:",
+        "  enable: true",
+        "  use-system-hosts: true    # 读取 Adobe Tools 写入的系统 hosts，避免 Fake-IP 绕过",
+        "  respect-rules: true",
+        "",
+        "rule-providers:",
+        "  adobe-block:",
+        "    type: http",
+        "    behavior: classical",
+        "    format: yaml",
+        "    url: \"https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-block.yaml\"",
+        "    path: ./ruleset/adobe-block.yaml",
+        "    interval: 86400",
+        "",
+        "rules:",
+        "  # 请放在所有 MATCH / 代理分流规则的最前面，确保优先命中拦截",
+        "  - RULE-SET,adobe-block,REJECT-DROP",
+        "  # 若需拦截本地未覆盖的自定义进程，可叠加本地导出文件：",
+        "  # - RULE-SET,adobe-block-local,REJECT"
+      ].join("\n");
+    }
+    return [
+      "# Adobe Tools - Mihomo / Clash.Meta 防侧漏规则集 (behavior: classical)",
+      "# 仓库地址: https://github.com/Rita6333/Adobe-Tools",
+      "# 订阅链接: https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-block.yaml",
+      "# 建议动作: REJECT 或 REJECT-DROP（配合 dns.use-system-hosts: true 防止 TUN / Fake-IP / 系统代理侧漏）",
+      "",
+      "payload:",
+      "  # ==================== 通配符域名后缀 ====================",
+      ...mihomoDomainSuffixes.map(s => `  - 'DOMAIN-SUFFIX,${s}'`),
+      "",
+      "  # ==================== 高危关键词匹配 ====================",
+      ...mihomoDomainKeywords.map(k => `  - 'DOMAIN-KEYWORD,${k}'`),
+      "",
+      "  # ==================== 激活、正版校验与遥测域名 ====================",
+      ...domains.map(d => `  - 'DOMAIN,${d}'`),
+      "",
+      "  # ==================== 进程级防侧漏 (Windows) ====================",
+      ...winProcs.map(p => `  - 'PROCESS-NAME,${p}'`),
+      "",
+      "  # ==================== 进程级防侧漏 (macOS) ====================",
+      ...macProcs.map(p => `  - 'PROCESS-NAME,${p}'`)
+    ].join("\n");
+  }
+
+  function renderMihomoPreview() {
+    const area = document.getElementById("txtMihomoPreview");
+    if (!area) return;
+    const { domains, winProcs, macProcs } = getMergedMihomoData();
+    area.value = generateMihomoText(activeMihomoFormat);
+    const totalProcs = winProcs.length + macProcs.length;
+    const sumEl = document.getElementById("txtMihomoSummary");
+    if (sumEl) sumEl.textContent = `${domains.length} 域名 · ${totalProcs} 进程`;
+    const metaEl = document.getElementById("txtMihomoMetaBadge");
+    if (metaEl) metaEl.textContent = `TUN / 系统代理防侧漏 · 已合并 ${(allExes || []).length} 个本机进程`;
+  }
+
+  function getActiveMihomoSubscribeUrl() {
+    if (activeMihomoFormat === "domain-yaml") {
+      return "https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-domain.yaml";
+    }
+    if (activeMihomoFormat === "classical-list") {
+      return "https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-block.list";
+    }
+    return "https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-block.yaml";
+  }
+
+  function copyMihomoSubscribeUrl() {
+    const url = getActiveMihomoSubscribeUrl();
+    navigator.clipboard.writeText(url).then(() => showToast("已复制 GitHub 规则集订阅链接"));
+  }
+
+  function copyMihomoContent() {
+    const txt = document.getElementById("txtMihomoPreview").value;
+    navigator.clipboard.writeText(txt).then(() => showToast("已复制当前 Mihomo 规则内容"));
+  }
+
+  function exportMihomoRules() {
+    sendCmd("exportMihomoRules");
+  }
+
   function initBuiltinDomains() {
     document.getElementById("builtinDomainsBox").innerHTML = domainCategories.map(cat => `
       <div>
@@ -2721,6 +3097,7 @@
 
     renderExeTable();
     renderServicesTable();
+    renderMihomoPreview();
     setBusy(false);
   }
 
@@ -2757,6 +3134,8 @@
       updateUpdateUI(msg.data);
     } else if (msg.type === "openUpdateModal") {
       openUpdateModal();
+    } else if (msg.type === "mihomoExported") {
+      showToast("已导出 Mihomo 规则集至 " + (msg.path || "本地目录"));
     }
   }
 

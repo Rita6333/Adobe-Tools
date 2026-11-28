@@ -48,6 +48,31 @@
 
 不想动 hosts 或服务的话，在首页对应卡片右上角把开关关掉即可。
 
+## 代理防侧漏（Mihomo / Clash）
+
+平时开了代理工具的 **TUN 模式**、**Fake-IP** 或 **系统代理** 时，部分流量会直接从代理内核走，可能绕过系统 `hosts` 和本机进程防火墙造成侧漏。
+
+软件的 **「域名 → Mihomo / Clash 防侧漏规则集」** 里可以直接生成并导出包含本机扫描到的全部 Adobe `.exe` 进程名的规则文件；如果你在配置里直接订阅仓库规则集，把下面这段加到 Mihomo 配置最前面就行：
+
+```yaml
+dns:
+  use-system-hosts: true
+
+rule-providers:
+  adobe-block:
+    type: http
+    behavior: classical
+    format: yaml
+    url: "https://raw.githubusercontent.com/Rita6333/Adobe-Tools/main/rules/mihomo/adobe-block.yaml"
+    path: ./ruleset/adobe-block.yaml
+    interval: 86400
+
+rules:
+  - RULE-SET,adobe-block,REJECT-DROP
+```
+
+仓库 `rules/mihomo/` 下同时提供了 `adobe-block.yaml`（`classical` 含域名与进程名）、`adobe-domain.yaml`（`domain` 格式）和 `adobe-block.list`（纯文本格式），按需引用即可。
+
 ## 自动更新
 
 软件打开后会默认检查 GitHub Releases 上有没有新版本（可以在更新窗口里关掉自动检查，或者跳过某个版本）。
@@ -71,7 +96,10 @@
 & '.\Adobe Tools.exe' check-update
 & '.\Adobe Tools.exe' update
 
-# 跑内置的 18 项逻辑自检（hosts 解析幂等性 + 版本比较与 SHA-256）
+# 导出 Mihomo 防侧漏规则集（含本机扫描到的 Adobe 进程名）
+& '.\Adobe Tools.exe' export-mihomo
+
+# 跑内置的 19 项逻辑自检（hosts 解析幂等性 + 自动更新 + Mihomo 规则）
 & '.\Adobe Tools.exe' selftest
 ```
 
@@ -109,6 +137,7 @@ chmod +x macos/build-macos.sh
 │   ├── main.mm                  macOS Objective-C++ 主程序（Cocoa + WKWebView）
 │   └── build-macos.sh           macOS 打包脚本
 ├── docs/                        图标和界面截图
+├── rules/mihomo/                Mihomo / Clash 防侧漏订阅规则集
 └── .github/workflows/
     └── release.yml              打 tag 自动构建并发布 Release
 ```
